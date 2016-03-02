@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">BMS Prototype</string>
+    <string name="connectedDevice">Connected device</string>
+    <string name="sendMessage">Send message</string>
+    <string name="availableDevices">Available devices</string>
+    <string name="connect">Connect</string>
 </resources>
