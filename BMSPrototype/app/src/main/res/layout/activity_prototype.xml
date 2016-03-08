@@ -45,26 +45,54 @@
 
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/tvAvailableDevices"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="16sp"
-        android:text="@string/availableDevices" />
-
-    <ListView
-        android:id="@+id/lvAvailableDevices"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_weight="1" />
+        android:orientation="vertical">
 
-    <TextView
-        android:id="@+id/tvDebug"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="@android:color/black"
-        android:textColor="@android:color/white"
-        android:textSize="16sp"
-        android:layout_weight="1.5" />
+        <TextView
+            android:id="@+id/tvAvailableDevices"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:text="@string/availableDevices" />
+
+        <ListView
+            android:id="@+id/lvAvailableDevices"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="6" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_weight="4">
+
+            <fragment android:name="bms.bmsprototype.fragment.StreamPlaybackFragment"
+                android:id="@+id/viewer"
+                android:layout_weight="5"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                tools:layout="@layout/playback_activity" />
+            <fragment android:name="bms.bmsprototype.fragment.StreamSurfaceFragment"
+                android:id="@+id/list"
+                android:layout_weight="5"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                tools:layout="@layout/streamed_activity" />
+
+            </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvDebug"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/black"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            android:layout_weight="6" />
+
+    </LinearLayout>
 
 </LinearLayout>
