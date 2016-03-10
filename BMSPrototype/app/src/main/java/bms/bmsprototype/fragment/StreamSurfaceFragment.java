@@ -34,6 +34,7 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.FileDescriptor;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -43,6 +44,7 @@ import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
+import bms.bmsprototype.PrototypeActivity;
 import bms.bmsprototype.R;
 import bms.bmsprototype.dialog.ErrorDialog;
 import bms.bmsprototype.helper.CameraHelper;
@@ -51,7 +53,6 @@ import bms.bmsprototype.helper.PermissionHelper;
 public class StreamSurfaceFragment extends Fragment {
 
     public static final String TAG = "StreamSurfaceFragment";
-
 
     private static final String FRAGMENT_DIALOG = "dialog";
     private static final int REQUEST_PERMISSIONS = 1;
@@ -62,13 +63,14 @@ public class StreamSurfaceFragment extends Fragment {
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
 
+    private PrototypeActivity mParentActivity;
 
     private TextureView mTextureView;
     private Button mButtonVideo;
 
     private CameraDevice mCameraDevice;
     private CameraCaptureSession mPreviewSession;
-    private String mCurrentFileName;
+    private String mCurrentFileName = null;
 
     /**
      * {@link TextureView.SurfaceTextureListener} handles several lifecycle events on a
@@ -133,8 +135,6 @@ public class StreamSurfaceFragment extends Fragment {
         public void onOpened(@NonNull CameraDevice cameraDevice) {
             mCameraDevice = cameraDevice;
             startPreview();
-            //start listening connection
-            openSocketConnection();
 
             mCameraOpenCloseLock.release();
             if (null != mTextureView) {
@@ -174,6 +174,7 @@ public class StreamSurfaceFragment extends Fragment {
 
     @Override
     public void onViewCreated(final View view, Bundle savedInstanceState) {
+        mParentActivity = (PrototypeActivity) getActivity();
         mTextureView = (TextureView) view.findViewById(R.id.texture);
         mButtonVideo = (Button) view.findViewById(R.id.video);
         mButtonVideo.setOnClickListener(new View.OnClickListener() {
@@ -206,66 +207,14 @@ public class StreamSurfaceFragment extends Fragment {
 
     @Override
     public void onPause() {
-        closeSocketConnection();
         closeCamera();
         stopBackgroundThread();
         super.onPause();
     }
 
-    private static final String SERVERIP = "127.0.0.1";
-    private static final int SERVERPORT = 6001;
-    private ServerSocket serverSocket;
-    private Socket streamClient;
     private Handler handler = new Handler();
     MediaRecorder streamRecorder = new MediaRecorder();
 
-    private void openSocketConnection()
-    {
-        try {
-            serverSocket = new ServerSocket(SERVERPORT);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        Thread streamingThread = new Thread(new StreamThread());
-        streamingThread.setDaemon(true);
-        streamingThread.start();
-    }
-
-    private void closeSocketConnection()
-    {
-        if(streamRecorder != null) {
-            streamRecorder.stop();
-            streamRecorder.release();
-            streamRecorder = null;
-        }
-        if(!serverSocket.isClosed())
-            try {
-                serverSocket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-    }
-
-    public class StreamThread implements Runnable {
-        public void run() {
-            int i = 0;
-            while (i<1)
-            {
-                //listen for incoming clients
-                try {
-                    //test
-                    streamClient = new Socket(InetAddress.getLocalHost(), SERVERPORT);
-                    //streamClient = serverSocket.accept();
-
-                    ++i;
-                    Log.d("SocketNumber", "value= " + i);
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
 
     /**
      * Starts a background thread and its {@link Handler}.
@@ -403,8 +352,8 @@ public class StreamSurfaceFragment extends Fragment {
             surfaces.add(previewSurface);
             mPreviewBuilder.addTarget(previewSurface);
 
-            if(streamClient != null) {
-                setUpStreamRecorder();
+
+            if(mParentActivity.isSocketConnected() && setUpStreamRecorder()) {
                 Surface recorderSurface = streamRecorder.getSurface();
                 surfaces.add(recorderSurface);
                 mPreviewBuilder.addTarget(recorderSurface);
@@ -442,6 +391,14 @@ public class StreamSurfaceFragment extends Fragment {
             setUpCaptureRequestBuilder(mPreviewBuilder);
             HandlerThread thread = new HandlerThread("CameraPreview");
             thread.start();
+
+            // Auto focus should be continuous for camera preview.
+            mPreviewBuilder.set(CaptureRequest.CONTROL_AF_MODE,
+                    CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+            // Flash is automatically enabled when necessary.
+            mPreviewBuilder.set(CaptureRequest.CONTROL_AE_MODE,
+                    CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
+
             mPreviewSession.setRepeatingRequest(mPreviewBuilder.build(), null, mBackgroundHandler);
         } catch (CameraAccessException e) {
             e.printStackTrace();
@@ -504,14 +461,18 @@ public class StreamSurfaceFragment extends Fragment {
 //        mMediaRecorder.prepare();
 //    }
 
-    private void setUpStreamRecorder() {
+    private boolean setUpStreamRecorder() {
+        streamRecorder.reset();
+        boolean isPrepared = false;
+
         // Begin video communication
-        final ParcelFileDescriptor pfd = ParcelFileDescriptor.fromSocket(streamClient);
+        FileDescriptor socketOpenedStream = mParentActivity.getSocketFileDescriptor();
+        assert socketOpenedStream != null;
 
         streamRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
         streamRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
         streamRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-        streamRecorder.setOutputFile(pfd.getFileDescriptor());
+        streamRecorder.setOutputFile(socketOpenedStream);
         streamRecorder.setVideoEncodingBitRate(10000000);
         streamRecorder.setVideoFrameRate(30);
         streamRecorder.setVideoSize(mVideoSize.getWidth(), mVideoSize.getHeight());
@@ -521,10 +482,12 @@ public class StreamSurfaceFragment extends Fragment {
 
         try {
             streamRecorder.prepare();
+            isPrepared = true;
         } catch (IOException e) {
             e.printStackTrace();
         }
 
+        return isPrepared;
     }
 
 
@@ -532,16 +495,16 @@ public class StreamSurfaceFragment extends Fragment {
         try {
 
             // Start recording
-            if(streamClient != null && streamClient.isConnected()) {
+            if(mParentActivity.isSocketConnected() && !mIsRecordingVideo) {
                 // UI
                 mButtonVideo.setText(R.string.stop);
-                mIsRecordingVideo = true;
 
-                //temp fix -> initialization process
+                //call this method to add our streamRecorder to surfaces list receiving camera informations
                 startPreview();
 
                 streamRecorder.start();
                 Toast.makeText(getActivity(), "Start streaming", Toast.LENGTH_LONG).show();
+                mIsRecordingVideo = true;
             }
             else
             {
@@ -549,25 +512,26 @@ public class StreamSurfaceFragment extends Fragment {
             }
         } catch (IllegalStateException e) {
             e.printStackTrace();
+            Toast.makeText(getActivity(), "Something went wrong.", Toast.LENGTH_LONG).show();
         }
     }
 
     private void stopRecordingVideo() {
-        // UI
-        mIsRecordingVideo = false;
-        mButtonVideo.setText(R.string.record);
-        // Stop recording
-        streamRecorder.stop();
-        streamRecorder.reset();
 
-        Activity activity = getActivity();
-        if (null != activity) {
+        if(mIsRecordingVideo) {
+            // UI
+            mIsRecordingVideo = false;
+            mButtonVideo.setText(R.string.record);
+            // Stop recording
+            streamRecorder.stop();
 
-                Toast.makeText(activity, "Video saved: " + "to samples",
-                        Toast.LENGTH_SHORT).show();
-
+//            Activity activity = getActivity();
+//            if (null != activity) {
+//
+//                Toast.makeText(activity, "Video saved: " + "to samples",
+//                        Toast.LENGTH_SHORT).show();
+//
+//            }
         }
-
-        startPreview();
     }
 }

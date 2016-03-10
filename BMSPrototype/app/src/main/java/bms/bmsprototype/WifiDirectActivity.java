@@ -9,9 +9,11 @@ import android.net.wifi.p2p.WifiP2pGroup;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
+import android.os.ParcelFileDescriptor;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 
+import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.InetAddress;
@@ -201,9 +203,17 @@ public class WifiDirectActivity extends AppCompatActivity {
     final public boolean isWifiEnabled() { return _wifiEnabled; }
     final public boolean isPeerDiscoveryStarted() { return  _peerDiscoveryStarted; }
 
-    final protected boolean isSocketConnected() {
+    final public boolean isSocketConnected() {
         return _socket != null && _socket.isConnected();
     }
+
+    final public FileDescriptor getSocketFileDescriptor() {
+        if (!isSocketConnected())
+            return null;
+        return ParcelFileDescriptor.fromSocket(_socket).getFileDescriptor();
+    }
+
+
 
     protected void onWifiStateChanged(boolean enabled) { _wifiEnabled = enabled; }
     protected void onPeerDiscoveryStateChanged(boolean started) { _peerDiscoveryStarted = started; }

@@ -67,7 +67,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_weight="4">
+            android:layout_weight="6">
 
             <fragment android:name="bms.bmsprototype.fragment.StreamPlaybackFragment"
                 android:id="@+id/viewer"
@@ -82,7 +82,7 @@
                 android:layout_height="wrap_content"
                 tools:layout="@layout/streamed_activity" />
 
-            </LinearLayout>
+        </LinearLayout>
 
         <TextView
             android:id="@+id/tvDebug"
