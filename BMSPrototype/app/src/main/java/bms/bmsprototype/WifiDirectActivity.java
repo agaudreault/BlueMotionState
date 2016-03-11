@@ -15,6 +15,7 @@ import android.util.Log;
 
 import java.io.FileDescriptor;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -24,6 +25,7 @@ import java.net.UnknownHostException;
 import bms.bmsprototype.socket.ClientSocketTask;
 import bms.bmsprototype.socket.ServerSocketTask;
 import bms.bmsprototype.socket.SocketInputRunnable;
+import bms.bmsprototype.utils.TransferThread;
 
 /**
  * Created by cara1912 on 2016-01-28.
@@ -247,7 +249,7 @@ public class WifiDirectActivity extends AppCompatActivity {
 
     final protected void connectSocket() {
         try {
-            Thread.sleep(1000);                 //If we try to get the connection info immediately after connecting,
+            Thread.sleep(5000);                 //If we try to get the connection info immediately after connecting,
         } catch (InterruptedException e) { }    // it's not available and the client never tries to connect to the server socket
 
         _manager.requestConnectionInfo(_channel, new WifiP2pManager.ConnectionInfoListener() {
@@ -292,6 +294,14 @@ public class WifiDirectActivity extends AppCompatActivity {
             printWriter.println(message);
         } catch (IOException e) {
             Log.d(LOG_TAG, "Exception while sending a message", e);
+        }
+    }
+
+    final public void sendStream(InputStream inputStream) {
+        try {
+            new TransferThread(inputStream, _socket.getOutputStream()).start();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }

@@ -38,6 +38,7 @@ public class SocketInputRunnable implements Runnable {
                     _activity.onMessageReceived(message);
             }
         } catch (IOException e) {
+            e.printStackTrace();
             Log.d(LOG_TAG, "Error while reading a message", e);
         }
     }

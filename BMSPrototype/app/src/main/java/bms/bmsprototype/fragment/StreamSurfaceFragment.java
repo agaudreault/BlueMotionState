@@ -36,6 +36,7 @@ import android.widget.Toast;
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -83,6 +84,7 @@ public class StreamSurfaceFragment extends Fragment {
         public void onSurfaceTextureAvailable(SurfaceTexture surfaceTexture,
                                               int width, int height) {
             openCamera(width, height);
+            startPreview();
         }
 
         @Override
@@ -465,25 +467,32 @@ public class StreamSurfaceFragment extends Fragment {
         streamRecorder.reset();
         boolean isPrepared = false;
 
-        // Begin video communication
-        FileDescriptor socketOpenedStream = mParentActivity.getSocketFileDescriptor();
-        assert socketOpenedStream != null;
-
-        streamRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
-        streamRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
-        streamRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
-        streamRecorder.setOutputFile(socketOpenedStream);
-        streamRecorder.setVideoEncodingBitRate(10000000);
-        streamRecorder.setVideoFrameRate(30);
-        streamRecorder.setVideoSize(mVideoSize.getWidth(), mVideoSize.getHeight());
-        streamRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.DEFAULT);
-        streamRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
-        streamRecorder.setOrientationHint(90);
-
         try {
+            // Begin video communication
+
+            ParcelFileDescriptor[] parcelFileDescriptors = ParcelFileDescriptor.createPipe();
+            ParcelFileDescriptor parcelRead = new ParcelFileDescriptor(parcelFileDescriptors[0]);
+            ParcelFileDescriptor parcelWrite  = new ParcelFileDescriptor(parcelFileDescriptors[1]);
+            InputStream readStream = new ParcelFileDescriptor.AutoCloseInputStream(parcelRead);
+
+            mParentActivity.sendStream(readStream);
+
+            streamRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
+            streamRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
+            streamRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
+            streamRecorder.setVideoFrameRate(30);
+            streamRecorder.setVideoSize(mVideoSize.getWidth(), mVideoSize.getHeight());
+            streamRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H263);
+            streamRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
+            streamRecorder.setOrientationHint(90);
+
+            //Uncomment this line to test the mediaRecorder in local
+            //streamRecorder.setOutputFile(CameraHelper.getOutputMediaFile(CameraHelper.MEDIA_TYPE_VIDEO).toString());
+            streamRecorder.setOutputFile(parcelWrite.getFileDescriptor());
+
             streamRecorder.prepare();
             isPrepared = true;
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -513,6 +522,8 @@ public class StreamSurfaceFragment extends Fragment {
         } catch (IllegalStateException e) {
             e.printStackTrace();
             Toast.makeText(getActivity(), "Something went wrong.", Toast.LENGTH_LONG).show();
+        }catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
