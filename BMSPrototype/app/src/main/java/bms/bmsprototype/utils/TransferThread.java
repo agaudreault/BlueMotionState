@@ -30,8 +30,9 @@ public class TransferThread extends Thread {
             }
 
             in.close();
-            out.flush();
-            out.close();
+
+            // do not close socket stream
+            //out.close();
         } catch (IOException e) {
             Log.e(getClass().getSimpleName(),
                     "Exception transferring Stream", e);

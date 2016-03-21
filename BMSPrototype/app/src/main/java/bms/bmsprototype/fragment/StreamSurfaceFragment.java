@@ -477,14 +477,28 @@ public class StreamSurfaceFragment extends Fragment {
 
             mParentActivity.sendStream(readStream);
 
-            streamRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
+            //streamRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
             streamRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
-            streamRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
-            streamRecorder.setVideoFrameRate(30);
+            streamRecorder.setOutputFormat(MediaRecorder.OutputFormat.WEBM);
+            streamRecorder.setVideoFrameRate(5);
             streamRecorder.setVideoSize(mVideoSize.getWidth(), mVideoSize.getHeight());
-            streamRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H263);
-            streamRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
+            streamRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.VP8);
+            //streamRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.VORBIS);
             streamRecorder.setOrientationHint(90);
+
+            streamRecorder.setOnErrorListener(new MediaRecorder.OnErrorListener() {
+                @Override
+                public void onError(MediaRecorder mr, int what, int extra) {
+                    Log.e("MEDIA_RECORDER_ON_ERROR", "(" + what + ", " + extra + ")");
+                }
+            });
+            streamRecorder.setOnInfoListener(new MediaRecorder.OnInfoListener() {
+                @Override
+                public void onInfo(MediaRecorder mr, int what, int extra) {
+
+                    Log.i("MEDIA_RECORDER_ON_INFO", "(" + what + ", " + extra + ")");
+                }
+            });
 
             //Uncomment this line to test the mediaRecorder in local
             //streamRecorder.setOutputFile(CameraHelper.getOutputMediaFile(CameraHelper.MEDIA_TYPE_VIDEO).toString());
@@ -523,7 +537,7 @@ public class StreamSurfaceFragment extends Fragment {
             e.printStackTrace();
             Toast.makeText(getActivity(), "Something went wrong.", Toast.LENGTH_LONG).show();
         }catch (Exception e) {
-            e.printStackTrace();
+            Log.e("DAMN", e.toString());
         }
     }
 
@@ -535,6 +549,8 @@ public class StreamSurfaceFragment extends Fragment {
             mButtonVideo.setText(R.string.record);
             // Stop recording
             streamRecorder.stop();
+
+            startPreview();
 
 //            Activity activity = getActivity();
 //            if (null != activity) {

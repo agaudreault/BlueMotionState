@@ -249,7 +249,7 @@ public class WifiDirectActivity extends AppCompatActivity {
 
     final protected void connectSocket() {
         try {
-            Thread.sleep(5000);                 //If we try to get the connection info immediately after connecting,
+            Thread.sleep(1500);                 //If we try to get the connection info immediately after connecting,
         } catch (InterruptedException e) { }    // it's not available and the client never tries to connect to the server socket
 
         _manager.requestConnectionInfo(_channel, new WifiP2pManager.ConnectionInfoListener() {
