@@ -16,12 +16,21 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical">
 
     <TextureView
         android:id="@+id/texture"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content" />
+
+
+    <fragment android:name="bms.bmsprototype.fragment.GyroscopeFragment"
+        android:id="@+id/gyroscopeFrag"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="left|top"
+        tools:layout="@layout/gyroscope_activity" />
 
     <FrameLayout
         android:layout_width="fill_parent"
