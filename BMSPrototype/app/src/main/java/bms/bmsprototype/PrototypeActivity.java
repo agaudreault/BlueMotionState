@@ -1,55 +1,20 @@
 package bms.bmsprototype;
 
-import android.annotation.SuppressLint;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.os.Bundle;
-import android.os.Handler;
-import android.support.v7.app.ActionBar;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 
 import bms.bmsprototype.utils.AvailableDevicesListAdapter;
 
 public class PrototypeActivity extends WifiDirectActivity {
-    private static final int UI_ANIMATION_DELAY = 300;
-
-    private final Handler _hideHandler = new Handler();
-    private final Runnable _hidePart2Runnable = new Runnable() {
-        @SuppressLint("InlinedApi")
-        @Override
-        public void run() {
-            _tvDebug.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
-                    | View.SYSTEM_UI_FLAG_FULLSCREEN
-                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
-        }
-    };
-    private final Runnable _showPart2Runnable = new Runnable() {
-        @Override
-        public void run() {
-            ActionBar actionBar = getSupportActionBar();
-            if (actionBar != null) {
-                actionBar.show();
-            }
-        }
-    };
-    private final Runnable _hideRunnable = new Runnable() {
-        @Override
-        public void run() {
-            hide();
-        }
-    };
 
     private TextView _tvConnectedDeviceName;
     private EditText _etxtMessage;
@@ -82,7 +47,7 @@ public class PrototypeActivity extends WifiDirectActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_prototype);
+        setContentView(R.layout.old_main_activity);
 
         _tvConnectedDeviceName = (TextView)findViewById(R.id.tvConnectedDeviceName);
         _etxtMessage = (EditText)findViewById(R.id.etxtMessage);
@@ -104,23 +69,8 @@ public class PrototypeActivity extends WifiDirectActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        delayedHide(100);
     }
 
-    private void hide() {
-        ActionBar actionBar = getSupportActionBar();
-
-        if (actionBar != null)
-            actionBar.hide();
-
-        _hideHandler.removeCallbacks(_showPart2Runnable);
-        _hideHandler.postDelayed(_hidePart2Runnable, UI_ANIMATION_DELAY);
-    }
-
-    private void delayedHide(int delayMillis) {
-        _hideHandler.removeCallbacks(_hideRunnable);
-        _hideHandler.postDelayed(_hideRunnable, delayMillis);
-    }
 
     private void addToDebug(final String text) {
         runOnUiThread(new Runnable() {

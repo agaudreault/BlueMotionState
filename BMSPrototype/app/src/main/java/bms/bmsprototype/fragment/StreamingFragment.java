@@ -34,12 +34,7 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import java.io.File;
-import java.io.FileDescriptor;
-import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
@@ -51,9 +46,9 @@ import bms.bmsprototype.dialog.ErrorDialog;
 import bms.bmsprototype.helper.CameraHelper;
 import bms.bmsprototype.helper.PermissionHelper;
 
-public class StreamSurfaceFragment extends Fragment {
+public class StreamingFragment extends Fragment {
 
-    public static final String TAG = "StreamSurfaceFragment";
+    public static final String TAG = "StreamingFragment";
 
     private static final String FRAGMENT_DIALOG = "dialog";
     private static final int REQUEST_PERMISSIONS = 1;
@@ -164,14 +159,14 @@ public class StreamSurfaceFragment extends Fragment {
 
     };
 
-    public static StreamSurfaceFragment newInstance() {
-        return new StreamSurfaceFragment();
+    public static StreamingFragment newInstance() {
+        return new StreamingFragment();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.streamed_activity, container, false);
+        return inflater.inflate(R.layout.streaming_fragment, container, false);
     }
 
     @Override
