@@ -41,6 +41,7 @@ public class PlaybackFragment extends Fragment {
 
     @Override
     public void onViewCreated(final View view, Bundle savedInstanceState) {
+        _parentActivity = (MainActivity) getActivity();
         _parentActivity.viewCreated();
     }
 

@@ -5,10 +5,15 @@ import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
+import android.net.wifi.p2p.WifiP2pInfo;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.TextView;
+
+import java.util.Collection;
 
 import bms.bmsprototype.fragment.PairingFragment;
+import bms.bmsprototype.fragment.SelectionFragment;
 
 public class MainActivity extends Activity {
     /**
@@ -21,6 +26,7 @@ public class MainActivity extends Activity {
      */
     private View mLoadingView;
 
+    private TextView _tvDebug;
 
     /**
      * The system "short" animation time duration, in milliseconds. This duration is ideal for
@@ -35,6 +41,7 @@ public class MainActivity extends Activity {
 
         mContentView = findViewById(R.id.content);
         mLoadingView = findViewById(R.id.loading_spinner);
+        _tvDebug = (TextView)findViewById(R.id.tvDebug);
 
         // Initially hide the content view.
         mContentView.setVisibility(View.GONE);
@@ -49,15 +56,25 @@ public class MainActivity extends Activity {
         moveToPairing();
     }
 
+    public void addToDebug(final String text) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                _tvDebug.setText(text + "\n" + _tvDebug.getText());
+            }
+        });
+    }
+
     public void moveToPairing()
     {
         PairingFragment f = PairingFragment.newInstance();
         replaceFragment(f);
     }
 
-    public void moveToSelection()
+    public void moveToSelection(WifiP2pInfo info, Collection<String> devicesName)
     {
-        throw new UnsupportedOperationException("Not implemented yet");
+        SelectionFragment f = SelectionFragment.newInstance(info, devicesName);
+        replaceFragment(f);
     }
 
     public void moveToStreaming()

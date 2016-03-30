@@ -18,35 +18,12 @@ import bms.bmsprototype.R;
 public class AvailableDevicesListAdapter extends ArrayAdapter<WifiP2pDevice> {
 
     private int _resource;
+    private View.OnClickListener _action;
 
-    public AvailableDevicesListAdapter(Context context, int resource, int textViewResourceId, List<WifiP2pDevice> objects) {
-        super(context, resource, textViewResourceId, objects);
-        _resource = resource;
-    }
-
-    public AvailableDevicesListAdapter(Context context, int resource) {
-        super(context, resource);
-        _resource = resource;
-    }
-
-    public AvailableDevicesListAdapter(Context context, int resource, int textViewResourceId) {
-        super(context, resource, textViewResourceId);
-        _resource = resource;
-    }
-
-    public AvailableDevicesListAdapter(Context context, int resource, WifiP2pDevice[] objects) {
+    public AvailableDevicesListAdapter(Context context, int resource, List<WifiP2pDevice> objects, View.OnClickListener action) {
         super(context, resource, objects);
         _resource = resource;
-    }
-
-    public AvailableDevicesListAdapter(Context context, int resource, int textViewResourceId, WifiP2pDevice[] objects) {
-        super(context, resource, textViewResourceId, objects);
-        _resource = resource;
-    }
-
-    public AvailableDevicesListAdapter(Context context, int resource, List<WifiP2pDevice> objects) {
-        super(context, resource, objects);
-        _resource = resource;
+        _action = action;
     }
 
     @Override
@@ -55,6 +32,9 @@ public class AvailableDevicesListAdapter extends ArrayAdapter<WifiP2pDevice> {
 
         TextView tvName = (TextView)itemView.findViewById(R.id.tvName);
         tvName.setText(getItem(position).deviceName);
+
+        // Set a click listener for the "X" button in the row that will remove the row.
+        itemView.findViewById(R.id.btnConnect).setOnClickListener(_action);
 
         return itemView;
     }

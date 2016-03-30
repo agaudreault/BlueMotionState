@@ -14,4 +14,7 @@
     <string name="pitch">"pitch: "</string>
     <string name="roll">"roll: "</string>
     <string name="inclination">"inclination: "</string>
+    <string name="streamingButtonText">Stream your camera</string>
+    <string name="playbackButtonText">Receive stream</string>
+    <string name="noDeviceMessage">No devices found.</string>
 </resources>
