@@ -19,7 +19,6 @@ import android.widget.Button;
 import android.widget.ListView;
 
 import java.util.ArrayList;
-import java.util.Collection;
 
 import bms.bmsprototype.activity.MainActivity;
 import bms.bmsprototype.R;
@@ -92,7 +91,7 @@ public class PairingFragment extends BaseFragment {
         _availableDevicesAdapter = new AvailableDevicesListAdapter(_parentActivity, R.layout.available_device, _availableDevices, new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                onConnectionRequested(v);
+                onConnectionRequested();
             }
         });
 
@@ -174,7 +173,7 @@ public class PairingFragment extends BaseFragment {
         super.onStop();
     }
 
-    public void onConnectionRequested(View view) {
+    private void onConnectionRequested() {
         if(_lastAvailableDeviceSelected != null) {
             WifiP2pConfig config = new WifiP2pConfig();
             config.deviceAddress = _lastAvailableDeviceSelected.deviceAddress;
@@ -313,7 +312,7 @@ public class PairingFragment extends BaseFragment {
     }
 
     @NonNull
-    public WifiP2pManager.ActionListener createPeerDiscoveryListener() {
+    private WifiP2pManager.ActionListener createPeerDiscoveryListener() {
         return new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
@@ -341,7 +340,7 @@ public class PairingFragment extends BaseFragment {
     }
 
     @NonNull
-    public WifiP2pManager.ActionListener createStopPeerDiscoveryListener() {
+    private WifiP2pManager.ActionListener createStopPeerDiscoveryListener() {
         return new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
@@ -370,7 +369,7 @@ public class PairingFragment extends BaseFragment {
 
 
     @NonNull
-    public WifiP2pManager.ActionListener createConnectionListener(final String deviceName) {
+    private WifiP2pManager.ActionListener createConnectionListener(final String deviceName) {
         return new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
@@ -397,7 +396,7 @@ public class PairingFragment extends BaseFragment {
         };
     }
 
-    public AdapterView.OnItemClickListener createItemClickListener() {
+    private AdapterView.OnItemClickListener createItemClickListener() {
         return new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {

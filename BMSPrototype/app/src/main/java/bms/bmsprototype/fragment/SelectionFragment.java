@@ -30,7 +30,7 @@ public class SelectionFragment extends BaseFragment {
     public static final String TAG = "SelectionFragment";
     private static final String WIFI_P2P_INFO = "bms.bmsprototype.fragment.SelectionFragment.wifi_p2p_info";
     private static final String DEVICES_NAME = "bms.bmsprototype.fragment.SelectionFragment.devices_name";
-    public static final int PORT_MESSAGING = 8888;
+    private static final int PORT_MESSAGING = 8888;
 
 
     private MainActivity _parentActivity;
@@ -40,8 +40,7 @@ public class SelectionFragment extends BaseFragment {
     private Socket _messageSocket;
 
     private TextView _tvConnectedDeviceName;
-    private EditText _etxtMessage;
-    private Button _btnSendMessage;
+    private EditText _editTextMessage;
 
     /**
      * Create a new instance of PairingFragment
@@ -90,6 +89,17 @@ public class SelectionFragment extends BaseFragment {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        super.clean();
+    }
+
+    @Override
+    public void onDestroy() {
+        try {
+            if(_messageSocket != null && !_messageSocket.isClosed())
+                _messageSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         super.onDestroy();
     }
 
@@ -102,13 +112,13 @@ public class SelectionFragment extends BaseFragment {
     public void onViewCreated(final View view, Bundle savedInstanceState) {
         _tvConnectedDeviceName = (TextView)_parentActivity.findViewById(R.id.tvConnectedDeviceName);
         _tvConnectedDeviceName.setText(_devicesName);
-        _etxtMessage = (EditText)_parentActivity.findViewById(R.id.etxtMessage);
+        _editTextMessage = (EditText)_parentActivity.findViewById(R.id.etxtMessage);
 
         Button playbackActionButton = (Button) _parentActivity.findViewById(R.id.playbackActionButton);
         Button streamingActionButton = (Button) _parentActivity.findViewById(R.id.streamingActionButton);
         final Button sendMessageButton = (Button) _parentActivity.findViewById(R.id.btnSendMessage);
 
-        _etxtMessage.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+        _editTextMessage.setOnEditorActionListener(new TextView.OnEditorActionListener() {
             @Override
             public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                 hideKeyboard(v);
@@ -122,24 +132,24 @@ public class SelectionFragment extends BaseFragment {
             @Override
             public void onClick(View v) {
                 hideKeyboard(v);
-                if(_etxtMessage.getText().length() <= 0)
+                if(_editTextMessage.getText().length() <= 0)
                     return;
 
-                sendMessage(_etxtMessage.getText().toString());
-                _etxtMessage.setText("");
+                sendMessage(_editTextMessage.getText().toString());
+                _editTextMessage.setText("");
             }
         });
 
         playbackActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                playbackActionOnClick(v);
+                playbackActionOnClick();
             }
         });
         streamingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                streamingActionOnClick(v);
+                streamingActionOnClick();
             }
         });
     }
@@ -171,21 +181,19 @@ public class SelectionFragment extends BaseFragment {
         super.onPause();
     }
 
-    public void streamingActionOnClick(View view) {
+    private void streamingActionOnClick() {
         Toast.makeText(_parentActivity, "move to streaming (pairing)", Toast.LENGTH_LONG).show();
         _parentActivity.moveToStreaming();
     }
 
-    public void playbackActionOnClick(View view) {
+    private void playbackActionOnClick() {
         Toast.makeText(_parentActivity, "move to playback (pairing)", Toast.LENGTH_LONG).show();
         _parentActivity.moveToPlayback();
     }
 
-    public void sendMessage(String message) {
-        if(!_messageSocket.isConnected()) {
-            Toast.makeText(_parentActivity, "Socket is not connected", Toast.LENGTH_SHORT).show();
+    private void sendMessage(String message) {
+        if(!isSocketStateValid(_messageSocket, true))
             return;
-        }
 
         try {
             PrintWriter printWriter = new PrintWriter(_messageSocket.getOutputStream(), true);
@@ -198,6 +206,22 @@ public class SelectionFragment extends BaseFragment {
     private void hideKeyboard(View view) {
         InputMethodManager inputManager = (InputMethodManager) _parentActivity.getSystemService(Context.INPUT_METHOD_SERVICE);
         inputManager.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+    }
+
+    private boolean isSocketStateValid(Socket socket, boolean showToast)
+    {
+        String msg = null;
+
+        if(socket == null){
+            msg = "The socket is not created. Are you both using the application ?";
+        } else if(!socket.isConnected()){
+            msg = "The socket is disconnected.";
+        }
+
+        if(showToast)
+            Toast.makeText(_parentActivity, msg, Toast.LENGTH_LONG).show();
+
+        return msg == null;
     }
 
 }
