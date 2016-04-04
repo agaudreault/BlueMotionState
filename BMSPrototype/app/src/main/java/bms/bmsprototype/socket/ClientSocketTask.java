@@ -18,10 +18,12 @@ public class ClientSocketTask extends SocketTask {
 
     private WifiDirectSocketEventListener _listener;
     private InetAddress _serverAddress;
+    private int _port;
 
-    public ClientSocketTask(WifiDirectSocketEventListener listener, InetAddress serverAddress) {
+    public ClientSocketTask(WifiDirectSocketEventListener listener, int port, InetAddress serverAddress) {
         _listener = listener;
         _serverAddress = serverAddress;
+        _port = port;
     }
 
     @Override
@@ -29,7 +31,7 @@ public class ClientSocketTask extends SocketTask {
         if(_serverAddress == null)
             return null;
 
-        InetSocketAddress serverSocketAddress = new InetSocketAddress(_serverAddress, ServerSocketTask.PORT);
+        InetSocketAddress serverSocketAddress = new InetSocketAddress(_serverAddress, _port);
         Socket socket;
 
         while(true) {

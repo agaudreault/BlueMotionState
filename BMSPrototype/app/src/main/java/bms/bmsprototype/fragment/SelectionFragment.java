@@ -30,6 +30,8 @@ public class SelectionFragment extends BaseFragment {
     public static final String TAG = "SelectionFragment";
     private static final String WIFI_P2P_INFO = "bms.bmsprototype.fragment.SelectionFragment.wifi_p2p_info";
     private static final String DEVICES_NAME = "bms.bmsprototype.fragment.SelectionFragment.devices_name";
+    public static final int PORT_MESSAGING = 8888;
+
 
     private MainActivity _parentActivity;
     private WifiP2pInfo _info;
@@ -63,7 +65,7 @@ public class SelectionFragment extends BaseFragment {
 
         _devicesName = getArguments().getString(DEVICES_NAME);
         _info = getArguments().getParcelable(WIFI_P2P_INFO);
-        if(!WifiDirectHelper.openSocketConnection(_info, new SocketTask.WifiDirectSocketEventListener() {
+        if(!WifiDirectHelper.openSocketConnection(_info, PORT_MESSAGING, new SocketTask.WifiDirectSocketEventListener() {
             @Override
             public void onSocketConnected(Socket socket) {
                 _messageSocket = socket;

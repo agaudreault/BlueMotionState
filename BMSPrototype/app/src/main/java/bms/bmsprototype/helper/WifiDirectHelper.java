@@ -45,14 +45,14 @@ public class WifiDirectHelper {
         }
     }
 
-    public static boolean openSocketConnection(WifiP2pInfo info, SocketTask.WifiDirectSocketEventListener listener) {
+    public static boolean openSocketConnection(WifiP2pInfo info, int port, SocketTask.WifiDirectSocketEventListener listener) {
         if (!info.groupFormed)
             return false;
 
         if (info.isGroupOwner)
-            new ServerSocketTask(listener).execute();
+            new ServerSocketTask(listener, port).execute();
         else
-            new ClientSocketTask(listener, info.groupOwnerAddress).execute();
+            new ClientSocketTask(listener, port, info.groupOwnerAddress).execute();
 
         return true;
     }

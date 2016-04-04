@@ -12,18 +12,19 @@ import java.net.Socket;
  */
 public class ServerSocketTask extends SocketTask {
     private static final String LOG_TAG = "ServerSocketTask";
-    public static final int PORT = 8888;
 
     private WifiDirectSocketEventListener _listener;
+    private int _port;
 
-    public ServerSocketTask(WifiDirectSocketEventListener listener) {
+    public ServerSocketTask(WifiDirectSocketEventListener listener, int port) {
         _listener = listener;
+        _port = port;
     }
 
     @Override
     protected Socket doInBackground(Void... params) {
         try {
-            ServerSocket serverSocket = new ServerSocket(PORT);
+            ServerSocket serverSocket = new ServerSocket(_port);
             Socket clientSocket = serverSocket.accept();
             serverSocket.close();
             return clientSocket;
