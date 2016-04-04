@@ -1,4 +1,4 @@
-package bms.bmsprototype;
+package bms.bmsprototype.receiver;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -12,6 +12,17 @@ import android.net.wifi.p2p.WifiP2pManager;
  * Created by cara1912 on 2016-01-28.
  */
 public class WifiDirectBroadcastReceiver extends BroadcastReceiver {
+
+    public interface WifiDirectEventListener {
+        void onConnectedDevice(boolean success);
+        void onConnectedDeviceFound(WifiP2pDevice device);
+        void onInvitedDeviceFound(WifiP2pDevice device);
+        void onFailedDeviceFound(WifiP2pDevice device);
+        void onAvailableDeviceFound(WifiP2pDevice device);
+        void onUnavailableDeviceFound(WifiP2pDevice device);
+        void onPeerDiscoveryStateChanged(boolean started);
+        void onWifiStateChanged(boolean enabled);
+    }
 
     private WifiP2pManager _manager;
     private WifiP2pManager.Channel _channel;

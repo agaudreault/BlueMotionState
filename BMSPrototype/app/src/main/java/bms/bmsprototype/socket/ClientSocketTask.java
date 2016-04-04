@@ -9,20 +9,18 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
-import bms.bmsprototype.WifiDirectActivity;
-
 /**
  * Created by cara1912 on 2016-02-11.
  */
-public class ClientSocketTask extends AsyncTask<Void, Void, Socket> {
+public class ClientSocketTask extends SocketTask {
     private static final String LOG_TAG = "ClientSocketTask";
     public static final int CONNECTION_TIMEOUT = 5000;
 
-    private WifiDirectActivity _activity;
+    private WifiDirectSocketEventListener _listener;
     private InetAddress _serverAddress;
 
-    public ClientSocketTask(WifiDirectActivity activity, InetAddress serverAddress) {
-        _activity = activity;
+    public ClientSocketTask(WifiDirectSocketEventListener listener, InetAddress serverAddress) {
+        _listener = listener;
         _serverAddress = serverAddress;
     }
 
@@ -56,6 +54,6 @@ public class ClientSocketTask extends AsyncTask<Void, Void, Socket> {
         super.onPostExecute(socket);
 
         if(socket != null && socket.isConnected())
-            _activity.onSocketConnected(socket);
+            _listener.onSocketConnected(socket);
     }
 }

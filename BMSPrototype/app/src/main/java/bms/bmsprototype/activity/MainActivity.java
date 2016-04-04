@@ -1,4 +1,4 @@
-package bms.bmsprototype;
+package bms.bmsprototype.activity;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -10,50 +10,55 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.TextView;
 
-import java.util.Collection;
-
+import bms.bmsprototype.R;
+import bms.bmsprototype.fragment.BaseFragment;
 import bms.bmsprototype.fragment.PairingFragment;
 import bms.bmsprototype.fragment.SelectionFragment;
 
 public class MainActivity extends Activity {
-    /**
-     * The view (or view group) containing the content. This is one of two overlapping views.
-     */
-    private View mContentView;
 
-    /**
-     * The view containing the loading indicator. This is the other of two overlapping views.
-     */
-    private View mLoadingView;
-
+    private View _contentView;
+    private View _loadingView;
     private TextView _tvDebug;
 
-    /**
-     * The system "short" animation time duration, in milliseconds. This duration is ideal for
-     * subtle animations or animations that occur very frequently.
-     */
-    private int mShortAnimationDuration;
+    private int _shortAnimationDuration;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main_activity);
 
-        mContentView = findViewById(R.id.content);
-        mLoadingView = findViewById(R.id.loading_spinner);
+        _contentView = findViewById(R.id.content);
+        _loadingView = findViewById(R.id.loading_spinner);
+
         _tvDebug = (TextView)findViewById(R.id.tvDebug);
 
         // Initially hide the content view.
-        mContentView.setVisibility(View.GONE);
+        _contentView.setVisibility(View.GONE);
 
         // Retrieve and cache the system's default "short" animation time.
-        mShortAnimationDuration = getResources().getInteger(android.R.integer.config_shortAnimTime);
+        _shortAnimationDuration = getResources().getInteger(android.R.integer.config_shortAnimTime);
+
+        moveToPairing();
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        moveToPairing();
+    }
+
+    @Override
+    public void onBackPressed() {
+        int fragments = getFragmentManager().getBackStackEntryCount();
+        String tag = getFragmentManager().getBackStackEntryAt(fragments - 1).getName();
+        BaseFragment frag = (BaseFragment) getFragmentManager().findFragmentByTag(tag);
+        frag.clean();
+        if (fragments == 1) {
+            finish();
+            return;
+        }
+
+        super.onBackPressed();
     }
 
     public void addToDebug(final String text) {
@@ -67,53 +72,63 @@ public class MainActivity extends Activity {
 
     public void moveToPairing()
     {
+        beginLoading();
         PairingFragment f = PairingFragment.newInstance();
         replaceFragment(f);
     }
 
-    public void moveToSelection(WifiP2pInfo info, Collection<String> devicesName)
+    public void moveToSelection(WifiP2pInfo info, String devicesName)
     {
+        beginLoading();
         SelectionFragment f = SelectionFragment.newInstance(info, devicesName);
         replaceFragment(f);
     }
 
     public void moveToStreaming()
     {
+        beginLoading();
         throw new UnsupportedOperationException("Not implemented yet");
     }
 
     public void moveToPlayback()
     {
+        beginLoading();
         throw new UnsupportedOperationException("Not implemented yet");
     }
 
-    public void viewCreated()
+    public void beginLoading()
+    {
+        showContentOrLoadingIndicator(false);
+    }
+
+    public void endLoading()
     {
         showContentOrLoadingIndicator(true);
     }
 
-    private void replaceFragment(Fragment newFragment)
+    private void replaceFragment(final Fragment newFragment)
     {
-        showContentOrLoadingIndicator(false);
         // Create new fragment and transaction
         FragmentTransaction transaction = getFragmentManager().beginTransaction();
 
         // Replace whatever is in the fragment_container view with this fragment,
         // and add the transaction to the back stack
-        transaction.replace(R.id.fragment_container, newFragment);
-        transaction.addToBackStack(null);
+        String tag = newFragment.getClass().getName();
+        transaction.replace(R.id.fragment_container, newFragment, tag);
+        transaction.addToBackStack(tag);
+        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
 
         // Commit the transaction
         transaction.commit();
     }
 
     /**
-     * Cross-fades between {@link #mContentView} and {@link #mLoadingView}.
+     * Cross-fades between {@link #_contentView} and {@link #_loadingView}.
      */
     private void showContentOrLoadingIndicator(boolean contentLoaded) {
         // Decide which view to hide and which to show.
-        final View showView = contentLoaded ? mContentView : mLoadingView;
-        final View hideView = contentLoaded ? mLoadingView : mContentView;
+        final View showView = contentLoaded ? _contentView : _loadingView;
+        final View hideView = contentLoaded ? _loadingView : _contentView;
 
         // Set the "show" view to 0% opacity but visible, so that it is visible
         // (but fully transparent) during the animation.
@@ -127,14 +142,14 @@ public class MainActivity extends Activity {
         // animations.
         showView.animate()
                 .alpha(1f)
-                .setDuration(mShortAnimationDuration)
+                .setDuration(_shortAnimationDuration)
                 .setListener(null);
 
         // Animate the "hide" view to 0% opacity. After the animation ends, set its visibility
         // to GONE as an optimization step (it won't participate in layout passes, etc.)
         hideView.animate()
                 .alpha(0f)
-                .setDuration(mShortAnimationDuration)
+                .setDuration(_shortAnimationDuration)
                 .setListener(new AnimatorListenerAdapter() {
                     @Override
                     public void onAnimationEnd(Animator animation) {
@@ -142,4 +157,5 @@ public class MainActivity extends Activity {
                     }
                 });
     }
+
 }

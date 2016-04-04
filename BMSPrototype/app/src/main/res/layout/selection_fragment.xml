@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context="bms.bmsprototype.PrototypeActivity"
-    android:id="@+id/mainLayout">
+    android:orientation="vertical">
+
     <TextView
         android:id="@+id/tvConnectedDevice"
         android:layout_width="match_parent"
@@ -29,17 +27,16 @@
             android:id="@+id/etxtMessage"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:enabled="false" />
+            android:inputType="text"
+            android:imeOptions="actionSend"
+            android:layout_weight="1" />
 
         <Button
             android:id="@+id/btnSendMessage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="12sp"
-            android:text="@string/sendMessage"
-            android:enabled="false"
-            android:onClick="btnSendMessageOnClick" />
+            android:text="@string/sendMessage" />
 
     </LinearLayout>
 
@@ -52,8 +49,7 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="1">
-        </RelativeLayout>
+            android:layout_weight="1"/>
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -65,8 +61,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:textSize="12sp"
-                android:text="@string/streamingButtonText"
-                android:onClick="streamingActionOnClick" />
+                android:text="@string/streamingButtonText"/>
 
         </RelativeLayout>
 
@@ -74,8 +69,7 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="1">
-        </RelativeLayout>
+            android:layout_weight="1"/>
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -87,16 +81,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:textSize="12sp"
-                android:text="@string/playbackButtonText"
-                android:onClick="playbackActionOnClick" />
+                android:text="@string/playbackButtonText"/>
 
         </RelativeLayout>
 
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_weight="1">
-        </RelativeLayout>
+            android:layout_weight="1"/>
 
     </LinearLayout>
 

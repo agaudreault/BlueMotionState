@@ -2,7 +2,6 @@ package bms.bmsprototype.fragment;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.Fragment;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Matrix;
@@ -40,13 +39,13 @@ import java.util.List;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
-import bms.bmsprototype.PrototypeActivity;
+import bms.bmsprototype.activity.MainActivity;
 import bms.bmsprototype.R;
 import bms.bmsprototype.dialog.ErrorDialog;
 import bms.bmsprototype.helper.CameraHelper;
 import bms.bmsprototype.helper.PermissionHelper;
 
-public class StreamingFragment extends Fragment {
+public class StreamingFragment extends BaseFragment {
 
     public static final String TAG = "StreamingFragment";
 
@@ -59,7 +58,7 @@ public class StreamingFragment extends Fragment {
             Manifest.permission.WRITE_EXTERNAL_STORAGE
     };
 
-    private PrototypeActivity mParentActivity;
+    private MainActivity mParentActivity;
 
     private TextureView mTextureView;
     private Button mButtonVideo;
@@ -171,7 +170,7 @@ public class StreamingFragment extends Fragment {
 
     @Override
     public void onViewCreated(final View view, Bundle savedInstanceState) {
-        mParentActivity = (PrototypeActivity) getActivity();
+        mParentActivity = (MainActivity) getActivity();
         mTextureView = (TextureView) view.findViewById(R.id.texture);
         mButtonVideo = (Button) view.findViewById(R.id.video);
         mButtonVideo.setOnClickListener(new View.OnClickListener() {
@@ -350,7 +349,7 @@ public class StreamingFragment extends Fragment {
             mPreviewBuilder.addTarget(previewSurface);
 
 
-            if(mParentActivity.isSocketConnected() && setUpStreamRecorder()) {
+            if(/* todo mParentActivity.isSocketConnected() &&*/ setUpStreamRecorder()) {
                 Surface recorderSurface = streamRecorder.getSurface();
                 surfaces.add(recorderSurface);
                 mPreviewBuilder.addTarget(recorderSurface);
@@ -470,7 +469,7 @@ public class StreamingFragment extends Fragment {
             ParcelFileDescriptor parcelWrite  = new ParcelFileDescriptor(parcelFileDescriptors[1]);
             InputStream readStream = new ParcelFileDescriptor.AutoCloseInputStream(parcelRead);
 
-            mParentActivity.sendStream(readStream);
+            /*m todo ParentActivity.sendStream(readStream);*/
 
             //streamRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
             streamRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
@@ -513,7 +512,7 @@ public class StreamingFragment extends Fragment {
         try {
 
             // Start recording
-            if(mParentActivity.isSocketConnected() && !mIsRecordingVideo) {
+            if(/*todo mParentActivity.isSocketConnected() && */!mIsRecordingVideo) {
                 // UI
                 mButtonVideo.setText(R.string.stop);
 

@@ -1,8 +1,10 @@
-package bms.bmsprototype;
+package bms.bmsprototype.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+
+import bms.bmsprototype.activity.MainActivity;
 
 /**
  * Created by gaua2616 on 2016-03-29.

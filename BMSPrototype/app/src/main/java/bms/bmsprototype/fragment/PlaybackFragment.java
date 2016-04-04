@@ -1,23 +1,18 @@
 package bms.bmsprototype.fragment;
 
-import android.app.Fragment;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.view.LayoutInflater;
-import android.view.SurfaceHolder;
-import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 
-import bms.bmsprototype.MainActivity;
+import bms.bmsprototype.activity.MainActivity;
 import bms.bmsprototype.R;
 
 
 /**
  * Created by gaua2616 on 2016-02-02.
  */
-public class PlaybackFragment extends Fragment {
+public class PlaybackFragment extends BaseFragment {
 
     public static final String TAG = "PairingFragment";
     private MainActivity _parentActivity;
@@ -42,7 +37,7 @@ public class PlaybackFragment extends Fragment {
     @Override
     public void onViewCreated(final View view, Bundle savedInstanceState) {
         _parentActivity = (MainActivity) getActivity();
-        _parentActivity.viewCreated();
+        _parentActivity.beginLoading();
     }
 
     @Override

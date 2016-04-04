@@ -1,6 +1,5 @@
 package bms.bmsprototype.fragment;
 
-import android.app.Fragment;
 import android.content.Context;
 import android.content.IntentFilter;
 import android.net.wifi.p2p.WifiP2pConfig;
@@ -8,6 +7,7 @@ import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pGroup;
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.util.Log;
@@ -20,15 +20,14 @@ import android.widget.ListView;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
-import bms.bmsprototype.MainActivity;
+import bms.bmsprototype.activity.MainActivity;
 import bms.bmsprototype.R;
-import bms.bmsprototype.WifiDirectBroadcastReceiver;
-import bms.bmsprototype.WifiDirectEventListener;
+import bms.bmsprototype.receiver.WifiDirectBroadcastReceiver;
+import bms.bmsprototype.helper.WifiDirectHelper;
 import bms.bmsprototype.utils.AvailableDevicesListAdapter;
 
-public class PairingFragment extends Fragment implements WifiDirectEventListener {
+public class PairingFragment extends BaseFragment {
 
     public static final String TAG = "PairingFragment";
     private MainActivity _parentActivity;
@@ -46,6 +45,7 @@ public class PairingFragment extends Fragment implements WifiDirectEventListener
 
     private boolean _wifiEnabled;
     private boolean _peerDiscoveryStarted;
+    private boolean _groupRemoved;
 
     /**
      * Create a new instance of PairingFragment
@@ -60,15 +60,33 @@ public class PairingFragment extends Fragment implements WifiDirectEventListener
     }
 
     @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        _parentActivity = (MainActivity) getActivity();
+        new TestTask().execute();
+
+        _manager = (WifiP2pManager)_parentActivity.getSystemService(Context.WIFI_P2P_SERVICE);
+        _channel = _manager.initialize(_parentActivity, _parentActivity.getMainLooper(), null);
+
+        _intentFilter = new IntentFilter();
+        _intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
+        _intentFilter.addAction(WifiP2pManager.WIFI_P2P_DISCOVERY_CHANGED_ACTION);
+        _intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
+        _intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
+        _intentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+
+        _availableDevices = new ArrayList<>();
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.pairing_fragment, container, false);
     }
 
     @Override
     public void onViewCreated(final View view, Bundle savedInstanceState) {
-        _parentActivity = (MainActivity) getActivity();
-
-        _availableDevices = new ArrayList<>();
+        _availableDevices.clear();
         _availableDevicesAdapter = new AvailableDevicesListAdapter(_parentActivity, R.layout.available_device, _availableDevices, new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -83,21 +101,29 @@ public class PairingFragment extends Fragment implements WifiDirectEventListener
         _lvAvailableDevices.setAdapter(_availableDevicesAdapter);
         _lvAvailableDevices.setOnItemClickListener(createItemClickListener());
 
-        _manager = (WifiP2pManager)_parentActivity.getSystemService(Context.WIFI_P2P_SERVICE);
-        _channel = _manager.initialize(_parentActivity, _parentActivity.getMainLooper(), null);
-        _broadcastReceiver = new WifiDirectBroadcastReceiver(_manager, _channel, this);
+        _broadcastReceiver = new WifiDirectBroadcastReceiver(_manager, _channel, createWifiDirectEventListener());
 
-        _intentFilter = new IntentFilter();
-        _intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
-        _intentFilter.addAction(WifiP2pManager.WIFI_P2P_DISCOVERY_CHANGED_ACTION);
-        _intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
-        _intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
-        _intentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+        _groupRemoved = false;
+        _manager.removeGroup(_channel, new WifiP2pManager.ActionListener() {
+
+            @Override
+            public void onSuccess() {
+                _groupRemoved = true;
+                Log.d(TAG, "removeGroup onSuccess -");
+            }
+
+            @Override
+            public void onFailure(int reason) {
+                //if there is not current group, it may fail but we just wanna be sure no device is paired
+                _groupRemoved = true;
+                Log.d(TAG, "removeGroup onFailure -" + reason);
+            }
+        });
+
+        WifiDirectHelper.deletePersistentGroups(_manager, _channel);
 
         _wifiEnabled = false;
         _peerDiscoveryStarted = false;
-
-        _parentActivity.viewCreated();
     }
 
     @Override
@@ -109,6 +135,23 @@ public class PairingFragment extends Fragment implements WifiDirectEventListener
     @Override
     public void onResume() {
         super.onResume();
+    }
+
+    private class TestTask extends AsyncTask<Void, Void, Boolean> {
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            try {
+                Thread.sleep(1500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return true;
+        }
+
+        @Override
+        protected void onPostExecute(Boolean abool) {
+            _parentActivity.endLoading();
+        }
     }
 
     @Override
@@ -123,47 +166,18 @@ public class PairingFragment extends Fragment implements WifiDirectEventListener
         if(_peerDiscoveryStarted) {
             _manager.stopPeerDiscovery(_channel, createStopPeerDiscoveryListener());
             _wifiEnabled = false;
+            _peerDiscoveryStarted = false;
         }
 
         super.onStop();
     }
-
 
     public void onConnectionRequested(View view) {
         if(_lastAvailableDeviceSelected != null) {
             WifiP2pConfig config = new WifiP2pConfig();
             config.deviceAddress = _lastAvailableDeviceSelected.deviceAddress;
 
-            _manager.connect(_channel, config, createConnectionListener(_lastAvailableDeviceSelected.deviceName, view));
-        }
-    }
-
-    //region WifiDirectEventListener
-
-    public void onPeerDiscoveryStateChanged(boolean started)
-    {
-        _peerDiscoveryStarted = started;
-    }
-
-    public void onWifiStateChanged(boolean enabled) {
-        _parentActivity.addToDebug("Wifi state : " + enabled);
-        _wifiEnabled = enabled;
-        if(_wifiEnabled)
-            getPeers();
-    }
-
-    public void onConnectedDevice(boolean success) {
-        if(success) {
-            _manager.requestConnectionInfo(_channel, new WifiP2pManager.ConnectionInfoListener() {
-                @Override
-                public void onConnectionInfoAvailable(WifiP2pInfo info) {
-                    if (!info.groupFormed)
-                        return;
-                    startTransition(info);
-                }
-            });
-        } else {
-            _manager.cancelConnect(_channel, null);
+            _manager.connect(_channel, config, createConnectionListener(_lastAvailableDeviceSelected.deviceName));
         }
     }
 
@@ -172,51 +186,28 @@ public class PairingFragment extends Fragment implements WifiDirectEventListener
         _manager.requestGroupInfo(_channel, new WifiP2pManager.GroupInfoListener() {
             @Override
             public void onGroupInfoAvailable(WifiP2pGroup group) {
+                if (group == null)
+                    return;
+
+                //TODO how can we get the connected deviceNames
+                // there is the onConnectedDeviceFound() triggered but... a while loop for that ?
+                // semaphore ? something like that ...
                 Collection<WifiP2pDevice> devices = group.getClientList();
-                Collection<String> devicesName = new ArrayList<String>(devices.size());
-                for(WifiP2pDevice device : devices) {
+                Collection<String> devicesName = new ArrayList<>(devices.size());
+                for (WifiP2pDevice device : devices) {
                     devicesName.add(device.deviceName);
                 }
 
-                _parentActivity.moveToSelection(info, devicesName);
+                _parentActivity.moveToSelection(info, "");
             }
         });
     }
-
-    public void onConnectedDeviceFound(final WifiP2pDevice device) {
-        _parentActivity.addToDebug("Connected device : " + device.deviceName);
-        removeDevice(device);
-    }
-
-    public void onInvitedDeviceFound(WifiP2pDevice device) {
-        _parentActivity.addToDebug("Invited device : " + device.deviceName);
-        removeDevice(device);
-    }
-
-    public void onFailedDeviceFound(WifiP2pDevice device) {
-        _parentActivity.addToDebug("Failed device : " + device.deviceName);
-        removeDevice(device);
-    }
-
-    public void onAvailableDeviceFound(WifiP2pDevice device) {
-        _parentActivity.addToDebug("Available device : " + device.deviceName);
-        addDevice(device);
-    }
-
-    public void onUnavailableDeviceFound(WifiP2pDevice device) {
-        _parentActivity.addToDebug("Unavailable device : " + device.deviceName);
-        removeDevice(device);
-    }
-
-    //endregion
 
     private void getPeers() {
         _manager.requestConnectionInfo(_channel, new WifiP2pManager.ConnectionInfoListener() {
             @Override
             public void onConnectionInfoAvailable(WifiP2pInfo info) {
-                if (info.groupFormed) {
-                    startTransition(info);
-                } else if (!_peerDiscoveryStarted) {
+                if (!_peerDiscoveryStarted) {
                     _manager.discoverPeers(_channel, createPeerDiscoveryListener());
                 }
             }
@@ -228,7 +219,7 @@ public class PairingFragment extends Fragment implements WifiDirectEventListener
         if(!_availableDevices.contains(device)) {
             _availableDevices.add(device);
             _availableDevicesAdapter.notifyDataSetChanged();
-            _parentActivity.findViewById(android.R.id.empty).setVisibility(View.GONE);
+            _parentActivity.findViewById(R.id.empty).setVisibility(View.GONE);
         }
     }
 
@@ -241,12 +232,79 @@ public class PairingFragment extends Fragment implements WifiDirectEventListener
 
         // If there are no rows remaining, show the empty view.
         if (_availableDevices.isEmpty()) {
-            _parentActivity.findViewById(android.R.id.empty).setVisibility(View.VISIBLE);
+            _parentActivity.findViewById(R.id.empty).setVisibility(View.VISIBLE);
         }
     }
 
 
     //region Listener creation
+
+    @NonNull
+    private WifiDirectBroadcastReceiver.WifiDirectEventListener createWifiDirectEventListener()
+    {
+        return new WifiDirectBroadcastReceiver.WifiDirectEventListener() {
+
+            @Override
+            public void onConnectedDevice(boolean success) {
+                if(success && _groupRemoved) {
+                    _manager.requestConnectionInfo(_channel, new WifiP2pManager.ConnectionInfoListener() {
+                        @Override
+                        public void onConnectionInfoAvailable(WifiP2pInfo info) {
+                            if (!info.groupFormed) {
+                                return;
+                            }
+                            startTransition(info);
+                        }
+                    });
+                } else {
+                    _manager.cancelConnect(_channel, null);
+                }
+            }
+
+            @Override
+            public void onConnectedDeviceFound(final WifiP2pDevice device) {
+                _parentActivity.addToDebug("Connected device : " + device.deviceName);
+                addDevice(device);
+            }
+
+            @Override
+            public void onInvitedDeviceFound(WifiP2pDevice device) {
+                _parentActivity.addToDebug("Invited device : " + device.deviceName);
+                addDevice(device);
+            }
+
+            @Override
+            public void onFailedDeviceFound(WifiP2pDevice device) {
+                _parentActivity.addToDebug("Failed device : " + device.deviceName);
+                removeDevice(device);
+            }
+
+            @Override
+            public void onAvailableDeviceFound(WifiP2pDevice device) {
+                _parentActivity.addToDebug("Available device : " + device.deviceName);
+                addDevice(device);
+            }
+
+            @Override
+            public void onUnavailableDeviceFound(WifiP2pDevice device) {
+                _parentActivity.addToDebug("Unavailable device : " + device.deviceName);
+                removeDevice(device);
+            }
+
+            @Override
+            public void onPeerDiscoveryStateChanged(boolean started) {
+                _peerDiscoveryStarted = started;
+            }
+
+            @Override
+            public void onWifiStateChanged(boolean enabled) {
+                _parentActivity.addToDebug("Wifi state : " + enabled);
+                _wifiEnabled = enabled;
+                if(_wifiEnabled)
+                    getPeers();
+            }
+        };
+    }
 
     @NonNull
     public WifiP2pManager.ActionListener createPeerDiscoveryListener() {
@@ -306,13 +364,12 @@ public class PairingFragment extends Fragment implements WifiDirectEventListener
 
 
     @NonNull
-    public WifiP2pManager.ActionListener createConnectionListener(final String deviceName, final View view) {
+    public WifiP2pManager.ActionListener createConnectionListener(final String deviceName) {
         return new WifiP2pManager.ActionListener() {
             @Override
             public void onSuccess() {
                 Log.d(TAG, "Connecting to " + deviceName + "...");
                 _parentActivity.addToDebug("Connecting to " + deviceName + "...");
-                view.setEnabled(false);
             }
 
             @Override
@@ -328,9 +385,8 @@ public class PairingFragment extends Fragment implements WifiDirectEventListener
                 else
                     reasonName = "Unknown error";
 
-                Log.d(TAG, "Connection  to " + deviceName + "failed : " + reasonName);
+                Log.d(TAG, "Connection to " + deviceName + " failed : " + reasonName);
                 _parentActivity.addToDebug("Connection  to " + deviceName + "failed : " + reasonName);
-                view.setEnabled(true);
             }
         };
     }
