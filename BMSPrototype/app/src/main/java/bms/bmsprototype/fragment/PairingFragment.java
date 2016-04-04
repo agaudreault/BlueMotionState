@@ -47,6 +47,8 @@ public class PairingFragment extends BaseFragment {
     private boolean _peerDiscoveryStarted;
     private boolean _groupRemoved;
 
+    private WifiP2pDevice _connectedDevice;
+
     /**
      * Create a new instance of PairingFragment
      */
@@ -189,16 +191,11 @@ public class PairingFragment extends BaseFragment {
                 if (group == null)
                     return;
 
-                //TODO how can we get the connected deviceNames
-                // there is the onConnectedDeviceFound() triggered but... a while loop for that ?
-                // semaphore ? something like that ...
-                Collection<WifiP2pDevice> devices = group.getClientList();
-                Collection<String> devicesName = new ArrayList<>(devices.size());
-                for (WifiP2pDevice device : devices) {
-                    devicesName.add(device.deviceName);
+                if (_connectedDevice == null) {
+                    startTransition(info);
+                    return;
                 }
-
-                _parentActivity.moveToSelection(info, "");
+                _parentActivity.moveToSelection(info, _connectedDevice.deviceName);
             }
         });
     }
@@ -262,32 +259,41 @@ public class PairingFragment extends BaseFragment {
             }
 
             @Override
-            public void onConnectedDeviceFound(final WifiP2pDevice device) {
+            public void onConnectedDeviceFound(WifiP2pDevice device) {
                 _parentActivity.addToDebug("Connected device : " + device.deviceName);
+                _connectedDevice = device;
                 addDevice(device);
             }
 
             @Override
             public void onInvitedDeviceFound(WifiP2pDevice device) {
                 _parentActivity.addToDebug("Invited device : " + device.deviceName);
+                if(_connectedDevice != null && _connectedDevice.equals(device))
+                    _connectedDevice = null;
                 addDevice(device);
             }
 
             @Override
             public void onFailedDeviceFound(WifiP2pDevice device) {
                 _parentActivity.addToDebug("Failed device : " + device.deviceName);
+                if(_connectedDevice != null && _connectedDevice.equals(device))
+                    _connectedDevice = null;
                 removeDevice(device);
             }
 
             @Override
             public void onAvailableDeviceFound(WifiP2pDevice device) {
                 _parentActivity.addToDebug("Available device : " + device.deviceName);
+                if(_connectedDevice != null && _connectedDevice.equals(device))
+                    _connectedDevice = null;
                 addDevice(device);
             }
 
             @Override
             public void onUnavailableDeviceFound(WifiP2pDevice device) {
                 _parentActivity.addToDebug("Unavailable device : " + device.deviceName);
+                if(_connectedDevice != null && _connectedDevice.equals(device))
+                    _connectedDevice = null;
                 removeDevice(device);
             }
 
