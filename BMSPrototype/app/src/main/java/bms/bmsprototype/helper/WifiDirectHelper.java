@@ -20,6 +20,7 @@ import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
 
 import java.lang.reflect.Method;
+import java.net.Socket;
 
 import bms.bmsprototype.socket.ClientSocketTask;
 import bms.bmsprototype.socket.ServerSocketTask;
@@ -55,5 +56,9 @@ public class WifiDirectHelper {
             new ClientSocketTask(listener, port, info.groupOwnerAddress).execute();
 
         return true;
+    }
+
+    public static boolean isSocketValid(Socket socket) {
+        return socket != null && socket.isConnected();
     }
 }

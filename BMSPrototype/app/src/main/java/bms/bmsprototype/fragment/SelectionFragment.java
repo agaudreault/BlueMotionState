@@ -30,8 +30,7 @@ public class SelectionFragment extends BaseFragment {
     public static final String TAG = "SelectionFragment";
     private static final String WIFI_P2P_INFO = "bms.bmsprototype.fragment.SelectionFragment.wifi_p2p_info";
     private static final String DEVICES_NAME = "bms.bmsprototype.fragment.SelectionFragment.devices_name";
-    private static final int PORT_MESSAGING = 8888;
-
+    private static final int MESSAGE_PORT = 8888;
 
     private MainActivity _parentActivity;
     private WifiP2pInfo _info;
@@ -42,17 +41,32 @@ public class SelectionFragment extends BaseFragment {
     private TextView _tvConnectedDeviceName;
     private EditText _editTextMessage;
 
+    private SocketTask.WifiDirectSocketEventListener _messageSocketEventListener = new SocketTask.WifiDirectSocketEventListener() {
+        @Override
+        public void onSocketConnected(Socket socket) {
+            _messageSocket = socket;
+
+            new Thread(new SocketMessageReader(new SocketMessageReader.EventListener() {
+                @Override
+                public void onMessageReceived(String message) {
+                    if(message != null)
+                        _parentActivity.addToDebug("Message Received: " + message);
+                }
+            }, _messageSocket)).start();
+        }
+    };
+
     /**
      * Create a new instance of PairingFragment
      */
     public static SelectionFragment newInstance(WifiP2pInfo info, String devicesName) {
-        SelectionFragment f = new SelectionFragment();
-
-        // Supply index input as an argument.
         Bundle args = new Bundle();
         args.putString(DEVICES_NAME, devicesName);
         args.putParcelable(WIFI_P2P_INFO, info);
+
+        SelectionFragment f = new SelectionFragment();
         f.setArguments(args);
+
         return f;
     }
 
@@ -64,21 +78,10 @@ public class SelectionFragment extends BaseFragment {
 
         _devicesName = getArguments().getString(DEVICES_NAME);
         _info = getArguments().getParcelable(WIFI_P2P_INFO);
-        if(!WifiDirectHelper.openSocketConnection(_info, PORT_MESSAGING, new SocketTask.WifiDirectSocketEventListener() {
-            @Override
-            public void onSocketConnected(Socket socket) {
-                _messageSocket = socket;
 
-                new Thread(new SocketMessageReader(new SocketMessageReader.EventListener() {
-                    @Override
-                    public void onMessageReceived(String message) {
-                        if(message != null)
-                            _parentActivity.addToDebug("Message Received: " + message);
-                    }
-                }, _messageSocket)).start();
-            }
-        }))
-            Log.d(TAG, "Group is not formed. Cannot connect socket");
+        if(!WifiDirectHelper.openSocketConnection(_info, MESSAGE_PORT, _messageSocketEventListener)) {
+            Log.d(TAG, "Group is not formed. Cannot connect message socket");
+        }
     }
 
     @Override
@@ -183,16 +186,16 @@ public class SelectionFragment extends BaseFragment {
 
     private void streamingActionOnClick() {
         Toast.makeText(_parentActivity, "move to streaming (pairing)", Toast.LENGTH_LONG).show();
-        _parentActivity.moveToStreaming();
+        _parentActivity.moveToStreaming(_info);
     }
 
     private void playbackActionOnClick() {
         Toast.makeText(_parentActivity, "move to playback (pairing)", Toast.LENGTH_LONG).show();
-        _parentActivity.moveToPlayback();
+        _parentActivity.moveToPlayback(_info);
     }
 
     private void sendMessage(String message) {
-        if(!isSocketStateValid(_messageSocket, true))
+        if(!WifiDirectHelper.isSocketValid(_messageSocket))
             return;
 
         try {
@@ -207,21 +210,4 @@ public class SelectionFragment extends BaseFragment {
         InputMethodManager inputManager = (InputMethodManager) _parentActivity.getSystemService(Context.INPUT_METHOD_SERVICE);
         inputManager.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
     }
-
-    private boolean isSocketStateValid(Socket socket, boolean showToast)
-    {
-        String msg = null;
-
-        if(socket == null){
-            msg = "The socket is not created. Are you both using the application ?";
-        } else if(!socket.isConnected()){
-            msg = "The socket is disconnected.";
-        }
-
-        if(showToast)
-            Toast.makeText(_parentActivity, msg, Toast.LENGTH_LONG).show();
-
-        return msg == null;
-    }
-
 }

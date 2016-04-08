@@ -13,7 +13,9 @@ import android.widget.TextView;
 import bms.bmsprototype.R;
 import bms.bmsprototype.fragment.BaseFragment;
 import bms.bmsprototype.fragment.PairingFragment;
+import bms.bmsprototype.fragment.PlaybackFragment;
 import bms.bmsprototype.fragment.SelectionFragment;
+import bms.bmsprototype.fragment.StreamingFragment;
 
 public class MainActivity extends Activity {
 
@@ -84,16 +86,18 @@ public class MainActivity extends Activity {
         replaceFragment(f);
     }
 
-    public void moveToStreaming()
+    public void moveToStreaming(WifiP2pInfo info)
     {
         beginLoading();
-        throw new UnsupportedOperationException("Not implemented yet");
+        StreamingFragment f = StreamingFragment.newInstance(info);
+        replaceFragment(f);
     }
 
-    public void moveToPlayback()
+    public void moveToPlayback(WifiP2pInfo info)
     {
         beginLoading();
-        throw new UnsupportedOperationException("Not implemented yet");
+        PlaybackFragment f = PlaybackFragment.newInstance(info);
+        replaceFragment(f);
     }
 
     public void beginLoading()
