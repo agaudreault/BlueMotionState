@@ -35,6 +35,9 @@ public class PlaybackFragment extends BaseFragment {
     private MainActivity _parentActivity;
     private WifiP2pInfo _info;
 
+    private SocketTask _socketConnectionTask;
+    private LoadingTask _loadingTask;
+
     private Socket _bitmapSocket;
     private Thread _bitmapReaderThread;
     private ArrayBlockingQueue<byte[]> _encodedBitmaps;
@@ -97,7 +100,8 @@ public class PlaybackFragment extends BaseFragment {
         _videoPlaybackTask = null;
         _continuePlayback = false;
 
-        new LoadingTask().execute();
+        _loadingTask = new LoadingTask();
+        _loadingTask.execute();
     }
 
     @Override
@@ -119,6 +123,12 @@ public class PlaybackFragment extends BaseFragment {
 
             if(_bitmapReaderThread != null && _bitmapReaderThread.isAlive())
                 _bitmapReaderThread.join();
+
+            if(_socketConnectionTask != null && _socketConnectionTask.getStatus() == AsyncTask.Status.RUNNING)
+                _socketConnectionTask.cancel(true);
+
+            if(_loadingTask != null && _loadingTask.getStatus() == AsyncTask.Status.RUNNING)
+                _loadingTask.cancel(true);
 
             stopVideoPlaybackTask();
         } catch (IOException | InterruptedException e) {
@@ -292,7 +302,9 @@ public class PlaybackFragment extends BaseFragment {
             _bitmapWidth = getResources().getDimensionPixelOffset(R.dimen.bitmap_width);
             _bitmapHeight = getResources().getDimensionPixelOffset(R.dimen.bitmap_height);
 
-            if(!WifiDirectHelper.openSocketConnection(_info, StreamingFragment.BITMAP_PORT, _bitmapSocketEventListener))
+            _socketConnectionTask = WifiDirectHelper.openSocketConnection(_info, StreamingFragment.BITMAP_PORT, _bitmapSocketEventListener);
+
+            if(_socketConnectionTask == null)
                 Log.d(TAG, "Group is not formed. Cannot connect message socket");
 
             return true;

@@ -36,6 +36,7 @@ public class SelectionFragment extends BaseFragment {
     private WifiP2pInfo _info;
     private String _devicesName;
 
+    private SocketTask _socketConnectionTask;
     private Socket _messageSocket;
 
     private TextView _tvConnectedDeviceName;
@@ -79,9 +80,10 @@ public class SelectionFragment extends BaseFragment {
         _devicesName = getArguments().getString(DEVICES_NAME);
         _info = getArguments().getParcelable(WIFI_P2P_INFO);
 
-        if(!WifiDirectHelper.openSocketConnection(_info, MESSAGE_PORT, _messageSocketEventListener)) {
+        _socketConnectionTask = WifiDirectHelper.openSocketConnection(_info, MESSAGE_PORT, _messageSocketEventListener);
+
+        if(_socketConnectionTask == null)
             Log.d(TAG, "Group is not formed. Cannot connect message socket");
-        }
     }
 
     @Override
@@ -89,6 +91,9 @@ public class SelectionFragment extends BaseFragment {
         try {
             if(_messageSocket != null && !_messageSocket.isClosed())
                 _messageSocket.close();
+
+            if(_socketConnectionTask != null && _socketConnectionTask.getStatus() == AsyncTask.Status.RUNNING)
+                _socketConnectionTask.cancel(true);
         } catch (IOException e) {
             e.printStackTrace();
         }

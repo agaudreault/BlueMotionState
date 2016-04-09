@@ -62,19 +62,27 @@ public class StreamingFragment extends BaseFragment {
 
     private MainActivity _parentActivity;
     private TextureView _tvPreview;
-    private CameraDevice _cameraDevice;
-    private HandlerThread _backgroundThread;
-    private Handler _backgroundHandler;
-    private CaptureRequest.Builder _previewBuilder;
-    private CameraCaptureSession _previewSession;
-    private Semaphore _cameraOpenCloseLock;
-    private Size _videoSize;
-    private Size _previewSize;
-    private VideoCapturingTask _videoCapturingTask;
-    private boolean _continueCapturing;
 
     private WifiP2pInfo _info;
     private Socket _bitmapSocket;
+
+    private SocketTask _socketConnectionTask;
+    private LoadingTask _loadingTask;
+
+    private CameraDevice _cameraDevice;
+    private HandlerThread _backgroundThread;
+    private Handler _backgroundHandler;
+
+    private CaptureRequest.Builder _previewBuilder;
+    private CameraCaptureSession _previewSession;
+
+    private Semaphore _cameraOpenCloseLock;
+
+    private Size _videoSize;
+    private Size _previewSize;
+
+    private VideoCapturingTask _videoCapturingTask;
+    private boolean _continueCapturing;
 
     private TextureView.SurfaceTextureListener _surfaceTextureListener = new TextureView.SurfaceTextureListener() {
         @Override
@@ -183,7 +191,9 @@ public class StreamingFragment extends BaseFragment {
     @Override
     public void onViewCreated(final View view, Bundle savedInstanceState) {
         _tvPreview = (TextureView)_parentActivity.findViewById(R.id.tvPreview);
-        new TestTask().execute();
+
+        _loadingTask = new LoadingTask();
+        _loadingTask.execute();
     }
 
     @Override
@@ -204,6 +214,12 @@ public class StreamingFragment extends BaseFragment {
         try {
             if(_bitmapSocket != null && !_bitmapSocket.isClosed())
                 _bitmapSocket.close();
+
+            if(_socketConnectionTask != null && _socketConnectionTask.getStatus() == AsyncTask.Status.RUNNING)
+                _socketConnectionTask.cancel(true);
+
+            if(_loadingTask != null && _loadingTask.getStatus() == AsyncTask.Status.RUNNING)
+                _loadingTask.cancel(true);
 
             stopVideoCapturingTask();
         } catch (IOException e) {
@@ -501,7 +517,7 @@ public class StreamingFragment extends BaseFragment {
         }
     }
 
-    private class TestTask extends AsyncTask<Void, Void, Boolean> {
+    private class LoadingTask extends AsyncTask<Void, Void, Boolean> {
         @Override
         protected Boolean doInBackground(Void... params) {
             try {
@@ -510,7 +526,9 @@ public class StreamingFragment extends BaseFragment {
                 e.printStackTrace();
             }
 
-            if(!WifiDirectHelper.openSocketConnection(_info, BITMAP_PORT, _bitmapSocketEventListener))
+            _socketConnectionTask = WifiDirectHelper.openSocketConnection(_info, BITMAP_PORT, _bitmapSocketEventListener);
+
+            if(_socketConnectionTask == null)
                 Log.d(TAG, "Group is not formed. Cannot connect message socket");
 
             return true;
