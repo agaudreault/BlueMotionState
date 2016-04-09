@@ -173,9 +173,6 @@ public class StreamingFragment extends BaseFragment {
         _continueCapturing = false;
 
         _info = getArguments().getParcelable(WIFI_P2P_INFO);
-
-        if(!WifiDirectHelper.openSocketConnection(_info, BITMAP_PORT, _bitmapSocketEventListener))
-            Log.d(TAG, "Group is not formed. Cannot connect message socket");
     }
 
     @Override
@@ -416,12 +413,6 @@ public class StreamingFragment extends BaseFragment {
 
     private void stopVideoCapturingTask() {
         _continueCapturing = false;
-
-        if(_videoCapturingTask != null && _videoCapturingTask.getStatus() == AsyncTask.Status.RUNNING) {
-            try {
-                _videoCapturingTask.get();
-            } catch (InterruptedException | ExecutionException e) { }
-        }
     }
 
     class VideoCapturingTask extends AsyncTask<Void, Void, Void> {
@@ -473,7 +464,7 @@ public class StreamingFragment extends BaseFragment {
                     }
 
                     long sleepTime = TASK_MS_TIME - (System.currentTimeMillis() - startTime);
-                    Log.d(TAG, Long.toString(sleepTime));
+                    //Log.d(TAG, Long.toString(sleepTime));
 
                     if(sleepTime > 0)
                         Thread.sleep(sleepTime);
@@ -514,10 +505,14 @@ public class StreamingFragment extends BaseFragment {
         @Override
         protected Boolean doInBackground(Void... params) {
             try {
-                Thread.sleep(1500);
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+
+            if(!WifiDirectHelper.openSocketConnection(_info, BITMAP_PORT, _bitmapSocketEventListener))
+                Log.d(TAG, "Group is not formed. Cannot connect message socket");
+
             return true;
         }
 

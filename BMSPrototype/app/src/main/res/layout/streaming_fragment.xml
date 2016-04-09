@@ -6,14 +6,15 @@
 
     <TextureView
         android:id="@+id/tvPreview"
-        android:layout_width="240px"
-        android:layout_height="360px" />
+        android:layout_width="@dimen/bitmap_width"
+        android:layout_height="@dimen/bitmap_height" />
 
+    <!--
     <fragment android:name="bms.bmsprototype.fragment.GyroscopeFragment"
         android:id="@+id/gyroscopeFrag"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/tvPreview"
         tools:layout="@layout/gyroscope_activity" />
-
+    -->
 </RelativeLayout>

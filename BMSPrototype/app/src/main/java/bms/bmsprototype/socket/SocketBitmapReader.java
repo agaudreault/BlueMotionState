@@ -76,7 +76,7 @@ public class SocketBitmapReader implements Runnable {
 
                 _listener.onEncodedBitmapReceived(copy);
             }
-        } catch (IOException e) {
+        } catch (IOException | ArrayIndexOutOfBoundsException e) {
             Log.d(TAG, "Error while reading a bitmap", e);
         }
     }

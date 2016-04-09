@@ -17,7 +17,6 @@ import android.view.ViewGroup;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ExecutionException;
 
 import bms.bmsprototype.activity.MainActivity;
 import bms.bmsprototype.R;
@@ -35,20 +34,25 @@ public class PlaybackFragment extends BaseFragment {
 
     private MainActivity _parentActivity;
     private WifiP2pInfo _info;
+
     private Socket _bitmapSocket;
+    private Thread _bitmapReaderThread;
     private ArrayBlockingQueue<byte[]> _encodedBitmaps;
+
     private SurfaceView _svPlayback;
     private SurfaceHolder _shPlayback;
     private VideoPlaybackTask _videoPlaybackTask;
     private boolean _continuePlayback;
 
+    private int _bitmapWidth;
+    private int _bitmapHeight;
+
     private SocketTask.WifiDirectSocketEventListener _bitmapSocketEventListener = new SocketTask.WifiDirectSocketEventListener() {
         @Override
         public void onSocketConnected(Socket socket) {
             _bitmapSocket = socket;
-            startVideoPlaybackTask();
 
-            new Thread(new SocketBitmapReader(new SocketBitmapReader.EventListener() {
+            _bitmapReaderThread = new Thread(new SocketBitmapReader(new SocketBitmapReader.EventListener() {
                 @Override
                 public void onEncodedBitmapReceived(byte[] encodedBitmap) {
                     try {
@@ -57,7 +61,10 @@ public class PlaybackFragment extends BaseFragment {
                         Log.d(TAG, "Error while putting encodedBitmap");
                     }
                 }
-            }, _bitmapSocket)).start();
+            }, _bitmapSocket));
+            _bitmapReaderThread.start();
+
+            startVideoPlaybackTask();
         }
     };
 
@@ -77,17 +84,20 @@ public class PlaybackFragment extends BaseFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        _parentActivity = (MainActivity) getActivity();
-        new TestTask().execute();
 
+        _parentActivity = (MainActivity) getActivity();
         _info = getArguments().getParcelable(WIFI_P2P_INFO);
 
+        _bitmapSocket = null;
+        _bitmapReaderThread = null;
         _encodedBitmaps = new ArrayBlockingQueue<>(30);
+
+        _svPlayback = null;
+        _shPlayback = null;
         _videoPlaybackTask = null;
         _continuePlayback = false;
 
-        if(!WifiDirectHelper.openSocketConnection(_info, StreamingFragment.BITMAP_PORT, _bitmapSocketEventListener))
-            Log.d(TAG, "Group is not formed. Cannot connect message socket");
+        new LoadingTask().execute();
     }
 
     @Override
@@ -107,10 +117,14 @@ public class PlaybackFragment extends BaseFragment {
             if(_bitmapSocket != null && !_bitmapSocket.isClosed())
                 _bitmapSocket.close();
 
+            if(_bitmapReaderThread != null && _bitmapReaderThread.isAlive())
+                _bitmapReaderThread.join();
+
             stopVideoPlaybackTask();
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
+
         super.clean();
     }
 
@@ -132,12 +146,6 @@ public class PlaybackFragment extends BaseFragment {
 
     private void stopVideoPlaybackTask() {
         _continuePlayback = false;
-
-        if(_videoPlaybackTask != null && _videoPlaybackTask.getStatus() == AsyncTask.Status.RUNNING) {
-            try {
-                _videoPlaybackTask.get();
-            } catch (InterruptedException | ExecutionException e) { }
-        }
     }
 
     private class VideoPlaybackTask extends AsyncTask<Void, Void, Void> {
@@ -160,7 +168,6 @@ public class PlaybackFragment extends BaseFragment {
 
             Canvas canvas;
             Bitmap decodedBitmap;
-            Bitmap scaledBitmap;
             Matrix matrix = new Matrix();
 
             BitmapFactory.Options options = new BitmapFactory.Options();
@@ -173,8 +180,14 @@ public class PlaybackFragment extends BaseFragment {
                 }
 
                 canvas = lockCanvasRunnable.getDestinationCanvas();
-                int canvasWidth = canvas.getWidth();
-                int canvasHeight = canvas.getHeight();
+
+                if(canvas == null) {
+                    Log.d(TAG, "Null canvas. Can't get its size");
+                    return null;
+                }
+
+                matrix.postScale((float)canvas.getWidth() / _bitmapWidth, (float)canvas.getHeight() / _bitmapHeight);
+                Log.d(TAG, matrix.toString());
 
                 unlockCanvasRunnable.setCanvas(canvas);
 
@@ -196,10 +209,11 @@ public class PlaybackFragment extends BaseFragment {
                     if (canvas == null)
                         continue;
 
-                    byte[] encodedBitmap = _encodedBitmaps.take();
-                    decodedBitmap = BitmapFactory.decodeByteArray(encodedBitmap, 0, encodedBitmap.length, options);
-                    scaledBitmap = Bitmap.createScaledBitmap(decodedBitmap, canvasWidth, canvasHeight, false);
-                    canvas.drawBitmap(scaledBitmap, matrix, null);
+                    if(!_encodedBitmaps.isEmpty()) {
+                        byte[] encodedBitmap = _encodedBitmaps.take();
+                        decodedBitmap = BitmapFactory.decodeByteArray(encodedBitmap, 0, encodedBitmap.length, options);
+                        canvas.drawBitmap(decodedBitmap, matrix, null);
+                    }
 
                     unlockCanvasRunnable.setCanvas(canvas);
 
@@ -209,7 +223,7 @@ public class PlaybackFragment extends BaseFragment {
                     }
 
                     long sleepTime = StreamingFragment.TASK_MS_TIME - (System.currentTimeMillis() - startTime);
-                    Log.d(TAG, Long.toString(sleepTime));
+                    //Log.d(TAG, Long.toString(sleepTime));
 
                     if (sleepTime > 0)
                         Thread.sleep(sleepTime);
@@ -266,14 +280,21 @@ public class PlaybackFragment extends BaseFragment {
         }
     }
 
-    private class TestTask extends AsyncTask<Void, Void, Boolean> {
+    private class LoadingTask extends AsyncTask<Void, Void, Boolean> {
         @Override
         protected Boolean doInBackground(Void... params) {
             try {
-                Thread.sleep(1500);
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+
+            _bitmapWidth = getResources().getDimensionPixelOffset(R.dimen.bitmap_width);
+            _bitmapHeight = getResources().getDimensionPixelOffset(R.dimen.bitmap_height);
+
+            if(!WifiDirectHelper.openSocketConnection(_info, StreamingFragment.BITMAP_PORT, _bitmapSocketEventListener))
+                Log.d(TAG, "Group is not formed. Cannot connect message socket");
+
             return true;
         }
 
