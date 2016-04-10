@@ -124,10 +124,11 @@ public class MainActivity extends Activity {
      * This should be called by a {@link SelectionFragment}.
      *
      */
-    public void moveToStreaming(WifiP2pInfo info)
+
+    public void moveToStreaming(WifiP2pInfo info, String devicesName)
     {
         beginLoading();
-        StreamingFragment f = StreamingFragment.newInstance(info);
+        StreamingFragment f = StreamingFragment.newInstance(info, devicesName);
         replaceFragment(f);
     }
 
@@ -135,10 +136,10 @@ public class MainActivity extends Activity {
      * Create a {@link PlaybackFragment} and replace it with the current fragment.
      * This should be called by a {@link SelectionFragment}.
      */
-    public void moveToPlayback(WifiP2pInfo info)
+    public void moveToPlayback(WifiP2pInfo info, String devicesName)
     {
         beginLoading();
-        PlaybackFragment f = PlaybackFragment.newInstance(info);
+        PlaybackFragment f = PlaybackFragment.newInstance(info, devicesName);
         replaceFragment(f);
     }
 

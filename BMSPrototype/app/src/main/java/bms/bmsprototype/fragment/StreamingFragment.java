@@ -31,6 +31,7 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.ByteArrayOutputStream;
@@ -54,6 +55,7 @@ import bms.bmsprototype.socket.SocketTask;
 public class StreamingFragment extends BaseFragment {
     public static final String TAG = "StreamingFragment";
     private static final String WIFI_P2P_INFO = "bms.bmsprototype.fragment.StreamingFragment.wifi_p2p_info";
+    private static final String DEVICES_NAME = "bms.bmsprototype.fragment.StreamingFragment.devices_name";
     private static final int CAMERA_PERMISSION_REQUEST = 1;
     private static final String CAMERA_PERMISSION = Manifest.permission.CAMERA;
 
@@ -62,8 +64,10 @@ public class StreamingFragment extends BaseFragment {
 
     private MainActivity _parentActivity;
     private TextureView _tvPreview;
+    private TextView _txtMessage;
 
     private WifiP2pInfo _info;
+    private String _deviceName;
     private Socket _bitmapSocket;
 
     private SocketTask _socketConnectionTask;
@@ -153,9 +157,10 @@ public class StreamingFragment extends BaseFragment {
         }
     };
 
-    public static StreamingFragment newInstance(WifiP2pInfo info) {
+    public static StreamingFragment newInstance(WifiP2pInfo info, String devicesName) {
         Bundle args = new Bundle();
         args.putParcelable(WIFI_P2P_INFO, info);
+        args.putString(DEVICES_NAME, devicesName);
 
         StreamingFragment f = new StreamingFragment();
         f.setArguments(args);
@@ -181,6 +186,7 @@ public class StreamingFragment extends BaseFragment {
         _continueCapturing = false;
 
         _info = getArguments().getParcelable(WIFI_P2P_INFO);
+        _deviceName = getArguments().getString(DEVICES_NAME);
     }
 
     @Override
@@ -191,6 +197,8 @@ public class StreamingFragment extends BaseFragment {
     @Override
     public void onViewCreated(final View view, Bundle savedInstanceState) {
         _tvPreview = (TextureView)_parentActivity.findViewById(R.id.tvPreview);
+        _txtMessage = (TextView)_parentActivity.findViewById(R.id.txtMessage);
+        _txtMessage.setText("You are currently streaming to " + _deviceName);
 
         _loadingTask = new LoadingTask();
         _loadingTask.execute();

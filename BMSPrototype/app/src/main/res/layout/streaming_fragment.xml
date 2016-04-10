@@ -9,6 +9,15 @@
         android:layout_width="@dimen/bitmap_width"
         android:layout_height="@dimen/bitmap_height" />
 
+    <TextView
+        android:id="@+id/txtMessage"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/black"
+        android:textColor="@android:color/white"
+        android:textSize="24sp"
+        android:gravity="center_horizontal|center_vertical" />
+
     <!--
     <fragment android:name="bms.bmsprototype.fragment.GyroscopeFragment"
         android:id="@+id/gyroscopeFrag"

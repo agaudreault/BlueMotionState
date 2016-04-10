@@ -184,11 +184,11 @@ public class SelectionFragment extends BaseFragment {
     }
 
     private void streamingActionOnClick() {
-        _parentActivity.moveToStreaming(_info);
+        _parentActivity.moveToStreaming(_info, _devicesName);
     }
 
     private void playbackActionOnClick() {
-        _parentActivity.moveToPlayback(_info);
+        _parentActivity.moveToPlayback(_info, _devicesName);
     }
 
     private void sendMessage(String message) {
