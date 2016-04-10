@@ -73,6 +73,9 @@ public class MainActivity extends Activity {
             return;
         }
 
+        //assert we are not loading anything, it's already loaded once at the creation.
+        endLoading();
+
         super.onBackPressed();
     }
 
