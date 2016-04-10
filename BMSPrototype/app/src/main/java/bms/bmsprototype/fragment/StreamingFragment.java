@@ -64,14 +64,12 @@ public class StreamingFragment extends BaseFragment {
 
     private MainActivity _parentActivity;
     private TextureView _tvPreview;
-    private TextView _txtMessage;
 
     private WifiP2pInfo _info;
     private String _deviceName;
     private Socket _bitmapSocket;
 
     private SocketTask _socketConnectionTask;
-    private LoadingTask _loadingTask;
 
     private CameraDevice _cameraDevice;
     private HandlerThread _backgroundThread;
@@ -107,7 +105,9 @@ public class StreamingFragment extends BaseFragment {
             if(_videoCapturingTask != null){
                 try {
                     _videoCapturingTask.get();
-                } catch (InterruptedException | ExecutionException e) { }
+                } catch (InterruptedException | ExecutionException e) {
+                    e.printStackTrace();
+                }
             }
 
             return true;
@@ -154,6 +154,7 @@ public class StreamingFragment extends BaseFragment {
         public void onSocketConnected(Socket socket) {
             _bitmapSocket = socket;
             startVideoCapturingTask();
+            _parentActivity.endLoading();
         }
     };
 
@@ -187,6 +188,8 @@ public class StreamingFragment extends BaseFragment {
 
         _info = getArguments().getParcelable(WIFI_P2P_INFO);
         _deviceName = getArguments().getString(DEVICES_NAME);
+
+        new LoadingTask().execute();
     }
 
     @Override
@@ -197,11 +200,9 @@ public class StreamingFragment extends BaseFragment {
     @Override
     public void onViewCreated(final View view, Bundle savedInstanceState) {
         _tvPreview = (TextureView)_parentActivity.findViewById(R.id.tvPreview);
-        _txtMessage = (TextView)_parentActivity.findViewById(R.id.txtMessage);
-        _txtMessage.setText("You are currently streaming to " + _deviceName);
+        TextView _txtMessage = (TextView) _parentActivity.findViewById(R.id.txtMessage);
+        _txtMessage.setText(getString(R.string.streaming_to) + _deviceName);
 
-        _loadingTask = new LoadingTask();
-        _loadingTask.execute();
     }
 
     @Override
@@ -225,9 +226,6 @@ public class StreamingFragment extends BaseFragment {
 
             if(_socketConnectionTask != null && _socketConnectionTask.getStatus() == AsyncTask.Status.RUNNING)
                 _socketConnectionTask.cancel(true);
-
-            if(_loadingTask != null && _loadingTask.getStatus() == AsyncTask.Status.RUNNING)
-                _loadingTask.cancel(true);
 
             stopVideoCapturingTask();
         } catch (IOException e) {
@@ -360,13 +358,13 @@ public class StreamingFragment extends BaseFragment {
 
             _cameraDevice.createCaptureSession(surfaces, new CameraCaptureSession.StateCallback() {
                 @Override
-                public void onConfigured(CameraCaptureSession cameraCaptureSession) {
+                public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
                     _previewSession = cameraCaptureSession;
                     updatePreview();
                 }
 
                 @Override
-                public void onConfigureFailed(CameraCaptureSession cameraCaptureSession) {
+                public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
                     if (_parentActivity != null)
                         Toast.makeText(_parentActivity, "Failed", Toast.LENGTH_SHORT).show();
                 }
@@ -528,23 +526,21 @@ public class StreamingFragment extends BaseFragment {
     private class LoadingTask extends AsyncTask<Void, Void, Boolean> {
         @Override
         protected Boolean doInBackground(Void... params) {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
 
             _socketConnectionTask = WifiDirectHelper.openSocketConnection(_info, BITMAP_PORT, _bitmapSocketEventListener);
 
-            if(_socketConnectionTask == null)
+            if(_socketConnectionTask == null) {
                 Log.d(TAG, "Group is not formed. Cannot connect message socket");
-
+                return false;
+            }
             return true;
         }
 
         @Override
         protected void onPostExecute(Boolean abool) {
-            _parentActivity.endLoading();
+            //if we cant create a connection, go back to previous fragment
+            if(!abool)
+                _parentActivity.onBackPressed();
         }
     }
 }

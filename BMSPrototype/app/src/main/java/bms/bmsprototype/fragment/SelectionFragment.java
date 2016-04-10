@@ -174,7 +174,6 @@ public class SelectionFragment extends BaseFragment {
             if(!abool)
                 _parentActivity.onBackPressed();
 
-            //_parentActivity.endLoading();
         }
     }
 

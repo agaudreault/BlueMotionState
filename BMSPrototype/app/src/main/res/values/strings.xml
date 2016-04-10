@@ -17,4 +17,5 @@
     <string name="streamingButtonText">Stream your camera</string>
     <string name="playbackButtonText">Receive stream</string>
     <string name="noDeviceMessage">No devices found.</string>
+    <string name="streaming_to">"You are currently streaming to "</string>
 </resources>

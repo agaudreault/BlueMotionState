@@ -39,7 +39,6 @@ public class PlaybackFragment extends BaseFragment {
     private String _deviceName;
 
     private SocketTask _socketConnectionTask;
-    private LoadingTask _loadingTask;
 
     private Socket _bitmapSocket;
     private Thread _bitmapReaderThread;
@@ -72,6 +71,8 @@ public class PlaybackFragment extends BaseFragment {
             _bitmapReaderThread.start();
 
             startVideoPlaybackTask();
+
+            _parentActivity.endLoading();
         }
     };
 
@@ -106,8 +107,7 @@ public class PlaybackFragment extends BaseFragment {
         _videoPlaybackTask = null;
         _continuePlayback = false;
 
-        _loadingTask = new LoadingTask();
-        _loadingTask.execute();
+        new LoadingTask().execute();
     }
 
     @Override
@@ -135,9 +135,6 @@ public class PlaybackFragment extends BaseFragment {
 
             if(_socketConnectionTask != null && _socketConnectionTask.getStatus() == AsyncTask.Status.RUNNING)
                 _socketConnectionTask.cancel(true);
-
-            if(_loadingTask != null && _loadingTask.getStatus() == AsyncTask.Status.RUNNING)
-                _loadingTask.cancel(true);
 
             stopVideoPlaybackTask();
         } catch (IOException | InterruptedException e) {
@@ -302,26 +299,23 @@ public class PlaybackFragment extends BaseFragment {
     private class LoadingTask extends AsyncTask<Void, Void, Boolean> {
         @Override
         protected Boolean doInBackground(Void... params) {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
 
             _bitmapWidth = getResources().getDimensionPixelOffset(R.dimen.bitmap_width);
             _bitmapHeight = getResources().getDimensionPixelOffset(R.dimen.bitmap_height);
 
             _socketConnectionTask = WifiDirectHelper.openSocketConnection(_info, StreamingFragment.BITMAP_PORT, _bitmapSocketEventListener);
 
-            if(_socketConnectionTask == null)
+            if(_socketConnectionTask == null) {
                 Log.d(TAG, "Group is not formed. Cannot connect message socket");
-
+                return false;
+            }
             return true;
         }
 
         @Override
         protected void onPostExecute(Boolean abool) {
-            _parentActivity.endLoading();
+            if(!abool)
+                _parentActivity.onBackPressed();
         }
     }
 }
