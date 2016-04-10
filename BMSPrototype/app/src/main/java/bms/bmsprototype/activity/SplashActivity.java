@@ -7,9 +7,8 @@ import android.support.v7.app.AppCompatActivity;
 import bms.bmsprototype.activity.MainActivity;
 
 /**
- * Created by gaua2616 on 2016-03-29.
+ * Splash screen
  */
-
 public class SplashActivity extends AppCompatActivity {
 
     @Override

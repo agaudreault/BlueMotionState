@@ -13,8 +13,13 @@ import android.widget.TextView;
 import bms.bmsprototype.R;
 import bms.bmsprototype.fragment.BaseFragment;
 import bms.bmsprototype.fragment.PairingFragment;
+import bms.bmsprototype.fragment.PlaybackFragment;
 import bms.bmsprototype.fragment.SelectionFragment;
+import bms.bmsprototype.fragment.StreamingFragment;
 
+/**
+ * Unique activity containing a loading view and a content view.
+ */
 public class MainActivity extends Activity {
 
     private View _contentView;
@@ -47,12 +52,22 @@ public class MainActivity extends Activity {
         super.onStart();
     }
 
+    /**
+     * Use the back stack to retreive preceding fragment and clean the current fragment
+     * before destruction. if there is no more fragment in the back stack, app is killed.
+     */
     @Override
     public void onBackPressed() {
         int fragments = getFragmentManager().getBackStackEntryCount();
+
+        //Get the fragment we are exiting from.
         String tag = getFragmentManager().getBackStackEntryAt(fragments - 1).getName();
         BaseFragment frag = (BaseFragment) getFragmentManager().findFragmentByTag(tag);
+
+        //Clean open connection on that fragment because it may not be destroyed immediately.
         frag.clean();
+
+        //Finish if we just exited from the last fragment.
         if (fragments == 1) {
             finish();
             return;
@@ -61,6 +76,12 @@ public class MainActivity extends Activity {
         super.onBackPressed();
     }
 
+    /**
+     * Add specified thread text with a UIThread to the text view located in the
+     * content view.
+     *
+     * @param text
+     */
     public void addToDebug(final String text) {
         runOnUiThread(new Runnable() {
             @Override
@@ -70,6 +91,10 @@ public class MainActivity extends Activity {
         });
     }
 
+    /**
+     * Create a {@link PairingFragment} and replace it with the current fragment.
+     * This fragment should be create as the first fragment of the application.
+     */
     public void moveToPairing()
     {
         beginLoading();
@@ -77,6 +102,13 @@ public class MainActivity extends Activity {
         replaceFragment(f);
     }
 
+    /**
+     * Create a {@link SelectionFragment} and replace it with the current fragment.
+     * This should be called by a {@link PairingFragment}.
+     *
+     * @param info Wifi connection info used to create a socket connection
+     * @param devicesName name of the device that we hace connection info
+     */
     public void moveToSelection(WifiP2pInfo info, String devicesName)
     {
         beginLoading();
@@ -84,28 +116,51 @@ public class MainActivity extends Activity {
         replaceFragment(f);
     }
 
+    /**
+     * Create a {@link StreamingFragment} and replace it with the current fragment.
+     * This should be called by a {@link SelectionFragment}.
+     *
+     */
     public void moveToStreaming()
     {
         beginLoading();
         throw new UnsupportedOperationException("Not implemented yet");
     }
 
+    /**
+     * Create a {@link PlaybackFragment} and replace it with the current fragment.
+     * This should be called by a {@link SelectionFragment}.
+     */
     public void moveToPlayback()
     {
         beginLoading();
         throw new UnsupportedOperationException("Not implemented yet");
     }
 
+    /**
+     * Used to show an animated loading view and to hide current view.
+     * Complete action with {@link MainActivity#endLoading()}.
+     */
     public void beginLoading()
     {
         showContentOrLoadingIndicator(false);
     }
 
+    /**
+     * Used to hide the loading view and shoe the content view. This should be
+     * use with {@link MainActivity#beginLoading()}
+     */
     public void endLoading()
     {
         showContentOrLoadingIndicator(true);
     }
 
+    /**
+     * Replace the current fragment located in the R.id.fragment_container with the
+     * newFragment in arguments. Old fragment is added to back stack
+     *
+     * @param newFragment The new fragment to place in the container.
+     */
     private void replaceFragment(final Fragment newFragment)
     {
         // Create new fragment and transaction

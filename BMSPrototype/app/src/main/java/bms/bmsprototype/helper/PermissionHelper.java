@@ -38,6 +38,13 @@ public class PermissionHelper {
         }
     }
 
+    /**
+     * Check the permission result
+     *
+     * @param grantResults
+     * @param requestedPermissions
+     * @return True if the permission is Granted for everything, false otherwise.
+     */
     public static boolean validateRequest(int[] grantResults, String[] requestedPermissions) {
         Log.d("PermissionHelper", "onRequestPermissionsResult");
         if (grantResults.length != requestedPermissions.length)

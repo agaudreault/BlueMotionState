@@ -60,25 +60,9 @@ public class SelectionFragment extends BaseFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         _parentActivity = (MainActivity) getActivity();
-        new TestTask().execute();
-
         _devicesName = getArguments().getString(DEVICES_NAME);
         _info = getArguments().getParcelable(WIFI_P2P_INFO);
-        if(!WifiDirectHelper.openSocketConnection(_info, PORT_MESSAGING, new SocketTask.WifiDirectSocketEventListener() {
-            @Override
-            public void onSocketConnected(Socket socket) {
-                _messageSocket = socket;
-
-                new Thread(new SocketMessageReader(new SocketMessageReader.EventListener() {
-                    @Override
-                    public void onMessageReceived(String message) {
-                        if(message != null)
-                            _parentActivity.addToDebug("Message Received: " + message);
-                    }
-                }, _messageSocket)).start();
-            }
-        }))
-            Log.d(TAG, "Group is not formed. Cannot connect socket");
+        new LoadingTask().execute();
     }
 
     @Override
@@ -90,17 +74,6 @@ public class SelectionFragment extends BaseFragment {
             e.printStackTrace();
         }
         super.clean();
-    }
-
-    @Override
-    public void onDestroy() {
-        try {
-            if(_messageSocket != null && !_messageSocket.isClosed())
-                _messageSocket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        super.onDestroy();
     }
 
     @Override
@@ -159,13 +132,27 @@ public class SelectionFragment extends BaseFragment {
         super.onResume();
     }
 
-    private class TestTask extends AsyncTask<Void, Void, Boolean> {
+    private class LoadingTask extends AsyncTask<Void, Void, Boolean> {
         @Override
         protected Boolean doInBackground(Void... params) {
-            try {
-                Thread.sleep(1500);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+
+            //// TODO: 2016-04-07 add a timeout for the socket creation and simulate a backPress if timeout
+            //create the socket connection.
+            if(!WifiDirectHelper.openSocketConnection(_info, PORT_MESSAGING, new SocketTask.WifiDirectSocketEventListener() {
+                @Override
+                public void onSocketConnected(Socket socket) {
+                    _messageSocket = socket;
+
+                    new Thread(new SocketMessageReader(new SocketMessageReader.EventListener() {
+                        @Override
+                        public void onMessageReceived(String message) {
+                            if(message != null)
+                                _parentActivity.addToDebug("Message Received: " + message);
+                        }
+                    }, _messageSocket)).start();
+                }
+            })) {
+                Log.d(TAG, "Group is not formed. Cannot connect socket");
             }
             return true;
         }
@@ -182,13 +169,11 @@ public class SelectionFragment extends BaseFragment {
     }
 
     private void streamingActionOnClick() {
-        Toast.makeText(_parentActivity, "move to streaming (pairing)", Toast.LENGTH_LONG).show();
         _parentActivity.moveToStreaming();
     }
 
     private void playbackActionOnClick() {
-        Toast.makeText(_parentActivity, "move to playback (pairing)", Toast.LENGTH_LONG).show();
-        _parentActivity.moveToPlayback();
+       _parentActivity.moveToPlayback();
     }
 
     private void sendMessage(String message) {

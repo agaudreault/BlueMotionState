@@ -26,6 +26,9 @@ import android.support.v13.app.FragmentCompat;
 
 import bms.bmsprototype.R;
 
+/**
+ * Dialog used to request permissions for audio and video recording
+ */
 public class ConfirmationDialog extends DialogFragment {
 
     private static final String ARG_PERMS = "permissions";

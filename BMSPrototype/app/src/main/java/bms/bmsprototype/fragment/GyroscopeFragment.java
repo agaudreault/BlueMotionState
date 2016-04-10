@@ -12,6 +12,9 @@ import android.widget.TextView;
 import bms.bmsprototype.R;
 import bms.bmsprototype.listener.GyroscopeListener;
 
+/**
+ * Fragment embedded into another. Display gyroscope value on top of this other fragment.
+ */
 public class GyroscopeFragment extends Fragment {
 
     public static final String TAG = "GyroscopeFragment";

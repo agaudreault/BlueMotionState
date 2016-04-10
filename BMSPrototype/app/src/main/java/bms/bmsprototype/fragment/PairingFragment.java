@@ -26,6 +26,10 @@ import bms.bmsprototype.receiver.WifiDirectBroadcastReceiver;
 import bms.bmsprototype.helper.WifiDirectHelper;
 import bms.bmsprototype.utils.AvailableDevicesListAdapter;
 
+/**
+ * Frqagment used to create a connection with the Wifip2p API and collect the information
+ * we need to create a socket connection between both devices.
+ */
 public class PairingFragment extends BaseFragment {
 
     public static final String TAG = "PairingFragment";
@@ -65,7 +69,7 @@ public class PairingFragment extends BaseFragment {
         super.onCreate(savedInstanceState);
 
         _parentActivity = (MainActivity) getActivity();
-        new TestTask().execute();
+        new LoadingTask().execute();
 
         _manager = (WifiP2pManager)_parentActivity.getSystemService(Context.WIFI_P2P_SERVICE);
         _channel = _manager.initialize(_parentActivity, _parentActivity.getMainLooper(), null);
@@ -85,8 +89,16 @@ public class PairingFragment extends BaseFragment {
         return inflater.inflate(R.layout.pairing_fragment, container, false);
     }
 
+    /**
+     * Called each time the fragment is restored on the UI.
+     *
+     * @param view
+     * @param savedInstanceState
+     */
     @Override
     public void onViewCreated(final View view, Bundle savedInstanceState) {
+
+        //clear list and rebind
         _availableDevices.clear();
         _availableDevicesAdapter = new AvailableDevicesListAdapter(_parentActivity, R.layout.available_device, _availableDevices, new View.OnClickListener() {
             @Override
@@ -95,6 +107,7 @@ public class PairingFragment extends BaseFragment {
             }
         });
 
+        //clear selected information
         _lastAvailableDeviceSelectedView = null;
         _lastAvailableDeviceSelected = null;
 
@@ -104,6 +117,7 @@ public class PairingFragment extends BaseFragment {
 
         _broadcastReceiver = new WifiDirectBroadcastReceiver(_manager, _channel, createWifiDirectEventListener());
 
+        //delete current wifi direct connection
         _groupRemoved = false;
         _manager.removeGroup(_channel, new WifiP2pManager.ActionListener() {
 
@@ -121,6 +135,8 @@ public class PairingFragment extends BaseFragment {
             }
         });
 
+        //delete current group. there is no way to do that with the API nor to create
+        //non-persistant group.
         WifiDirectHelper.deletePersistentGroups(_manager, _channel);
 
         _wifiEnabled = false;
@@ -138,9 +154,10 @@ public class PairingFragment extends BaseFragment {
         super.onResume();
     }
 
-    private class TestTask extends AsyncTask<Void, Void, Boolean> {
+    private class LoadingTask extends AsyncTask<Void, Void, Boolean> {
         @Override
         protected Boolean doInBackground(Void... params) {
+            //Insert long initialization code here.
             try {
                 Thread.sleep(1500);
             } catch (InterruptedException e) {
@@ -173,15 +190,23 @@ public class PairingFragment extends BaseFragment {
         super.onStop();
     }
 
+    /**
+     * Action to do when the user press Connect on the UI
+     */
     private void onConnectionRequested() {
         if(_lastAvailableDeviceSelected != null) {
             WifiP2pConfig config = new WifiP2pConfig();
             config.deviceAddress = _lastAvailableDeviceSelected.deviceAddress;
 
+            //request a connection (invite device)
             _manager.connect(_channel, config, createConnectionListener(_lastAvailableDeviceSelected.deviceName));
         }
     }
 
+    /**
+     * Do the final validation before to move to {@link SelectionFragment}.
+     * @param info The information to create a socket connection
+     */
     private void startTransition(final WifiP2pInfo info)
     {
         _manager.requestGroupInfo(_channel, new WifiP2pManager.GroupInfoListener() {
@@ -190,6 +215,7 @@ public class PairingFragment extends BaseFragment {
                 if (group == null)
                     return;
 
+                //call the transition again if we didn't received the connectedDevice callback
                 if (_connectedDevice == null) {
                     startTransition(info);
                     return;
@@ -199,6 +225,10 @@ public class PairingFragment extends BaseFragment {
         });
     }
 
+    /**
+     * Create a peer discovery (search for other devices) if one is not already
+     * started.
+     */
     private void getPeers() {
         _manager.requestConnectionInfo(_channel, new WifiP2pManager.ConnectionInfoListener() {
             @Override
@@ -210,6 +240,10 @@ public class PairingFragment extends BaseFragment {
         });
     }
 
+    /**
+     * Add the specified device to the list if it's not already there.
+     * @param device The device to add
+     */
     private void addDevice(final WifiP2pDevice device)
     {
         if(!_availableDevices.contains(device)) {
@@ -219,6 +253,10 @@ public class PairingFragment extends BaseFragment {
         }
     }
 
+    /**
+     * Remove the specified device from the list.
+     * @param device The device to remove
+     */
     private void removeDevice(final WifiP2pDevice device)
     {
         if(_availableDevices.contains(device)) {
@@ -231,7 +269,6 @@ public class PairingFragment extends BaseFragment {
             _parentActivity.findViewById(R.id.empty).setVisibility(View.VISIBLE);
         }
     }
-
 
     //region Listener creation
 

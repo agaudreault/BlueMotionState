@@ -3,7 +3,8 @@ package bms.bmsprototype.fragment;
 import android.app.Fragment;
 
 /**
- * Created by gaua2616 on 2016-04-03.
+ * Abstract class used to allow cleaning before destruction.
+ * Useful with the back stack.
  */
 public abstract class BaseFragment extends Fragment {
 
@@ -11,4 +12,10 @@ public abstract class BaseFragment extends Fragment {
      * Call this method to close opened connection.
      */
     public void clean(){}
+
+    @Override
+    public void onDestroy() {
+        clean();
+        super.onDestroy();
+    }
 }
