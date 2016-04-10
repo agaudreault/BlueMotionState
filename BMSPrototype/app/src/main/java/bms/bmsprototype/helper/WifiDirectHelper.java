@@ -18,8 +18,10 @@ package bms.bmsprototype.helper;
 
 import android.net.wifi.p2p.WifiP2pInfo;
 import android.net.wifi.p2p.WifiP2pManager;
+import android.os.AsyncTask;
 
 import java.lang.reflect.Method;
+import java.net.Socket;
 
 import bms.bmsprototype.socket.ClientSocketTask;
 import bms.bmsprototype.socket.ServerSocketTask;
@@ -45,15 +47,22 @@ public class WifiDirectHelper {
         }
     }
 
-    public static boolean openSocketConnection(WifiP2pInfo info, int port, SocketTask.WifiDirectSocketEventListener listener) {
+    public static SocketTask openSocketConnection(WifiP2pInfo info, int port, SocketTask.WifiDirectSocketEventListener listener) {
         if (!info.groupFormed)
-            return false;
+            return null;
+
+        SocketTask task;
 
         if (info.isGroupOwner)
-            new ServerSocketTask(listener, port).execute();
+            task = new ServerSocketTask(listener, port);
         else
-            new ClientSocketTask(listener, port, info.groupOwnerAddress).execute();
+            task = new ClientSocketTask(listener, port, info.groupOwnerAddress);
 
-        return true;
+        task.execute();
+        return task;
+    }
+
+    public static boolean isSocketValid(Socket socket) {
+        return socket != null && socket.isConnected();
     }
 }

@@ -121,20 +121,22 @@ public class MainActivity extends Activity {
      * This should be called by a {@link SelectionFragment}.
      *
      */
-    public void moveToStreaming()
+    public void moveToStreaming(WifiP2pInfo info)
     {
         beginLoading();
-        throw new UnsupportedOperationException("Not implemented yet");
+        StreamingFragment f = StreamingFragment.newInstance(info);
+        replaceFragment(f);
     }
 
     /**
      * Create a {@link PlaybackFragment} and replace it with the current fragment.
      * This should be called by a {@link SelectionFragment}.
      */
-    public void moveToPlayback()
+    public void moveToPlayback(WifiP2pInfo info)
     {
         beginLoading();
-        throw new UnsupportedOperationException("Not implemented yet");
+        PlaybackFragment f = PlaybackFragment.newInstance(info);
+        replaceFragment(f);
     }
 
     /**

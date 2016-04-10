@@ -1,6 +1,5 @@
 package bms.bmsprototype.socket;
 
-import android.os.AsyncTask;
 import android.util.Log;
 
 import java.io.IOException;

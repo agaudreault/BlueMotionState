@@ -30,29 +30,46 @@ public class SelectionFragment extends BaseFragment {
     public static final String TAG = "SelectionFragment";
     private static final String WIFI_P2P_INFO = "bms.bmsprototype.fragment.SelectionFragment.wifi_p2p_info";
     private static final String DEVICES_NAME = "bms.bmsprototype.fragment.SelectionFragment.devices_name";
-    private static final int PORT_MESSAGING = 8888;
-
+    private static final int MESSAGE_PORT = 8888;
 
     private MainActivity _parentActivity;
     private WifiP2pInfo _info;
     private String _devicesName;
 
+    private SocketTask _socketConnectionTask;
     private Socket _messageSocket;
 
     private TextView _tvConnectedDeviceName;
     private EditText _editTextMessage;
 
+    private SocketTask.WifiDirectSocketEventListener _messageSocketEventListener = new SocketTask.WifiDirectSocketEventListener() {
+        @Override
+        public void onSocketConnected(Socket socket) {
+            _messageSocket = socket;
+
+            new Thread(new SocketMessageReader(new SocketMessageReader.EventListener() {
+                @Override
+                public void onMessageReceived(String message) {
+                    if(message != null)
+                        _parentActivity.addToDebug("Message Received: " + message);
+                }
+            }, _messageSocket)).start();
+
+            _parentActivity.endLoading();
+        }
+    };
+
     /**
      * Create a new instance of PairingFragment
      */
     public static SelectionFragment newInstance(WifiP2pInfo info, String devicesName) {
-        SelectionFragment f = new SelectionFragment();
-
-        // Supply index input as an argument.
         Bundle args = new Bundle();
         args.putString(DEVICES_NAME, devicesName);
         args.putParcelable(WIFI_P2P_INFO, info);
+
+        SelectionFragment f = new SelectionFragment();
         f.setArguments(args);
+
         return f;
     }
 
@@ -63,6 +80,7 @@ public class SelectionFragment extends BaseFragment {
         _devicesName = getArguments().getString(DEVICES_NAME);
         _info = getArguments().getParcelable(WIFI_P2P_INFO);
         new LoadingTask().execute();
+
     }
 
     @Override
@@ -70,6 +88,9 @@ public class SelectionFragment extends BaseFragment {
         try {
             if(_messageSocket != null && !_messageSocket.isClosed())
                 _messageSocket.close();
+
+            if(_socketConnectionTask != null && _socketConnectionTask.getStatus() == AsyncTask.Status.RUNNING)
+                _socketConnectionTask.cancel(true);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -138,28 +159,22 @@ public class SelectionFragment extends BaseFragment {
 
             //// TODO: 2016-04-07 add a timeout for the socket creation and simulate a backPress if timeout
             //create the socket connection.
-            if(!WifiDirectHelper.openSocketConnection(_info, PORT_MESSAGING, new SocketTask.WifiDirectSocketEventListener() {
-                @Override
-                public void onSocketConnected(Socket socket) {
-                    _messageSocket = socket;
+            _socketConnectionTask = WifiDirectHelper.openSocketConnection(_info, MESSAGE_PORT, _messageSocketEventListener);
 
-                    new Thread(new SocketMessageReader(new SocketMessageReader.EventListener() {
-                        @Override
-                        public void onMessageReceived(String message) {
-                            if(message != null)
-                                _parentActivity.addToDebug("Message Received: " + message);
-                        }
-                    }, _messageSocket)).start();
-                }
-            })) {
-                Log.d(TAG, "Group is not formed. Cannot connect socket");
+            if(_socketConnectionTask == null) {
+                Log.d(TAG, "Group is not formed. Cannot connect message socket");
+                return false;
             }
             return true;
         }
 
         @Override
         protected void onPostExecute(Boolean abool) {
-            _parentActivity.endLoading();
+            //if we cant create a connection, go back to previous fragment
+            if(!abool)
+                _parentActivity.onBackPressed();
+
+            //_parentActivity.endLoading();
         }
     }
 
@@ -169,15 +184,15 @@ public class SelectionFragment extends BaseFragment {
     }
 
     private void streamingActionOnClick() {
-        _parentActivity.moveToStreaming();
+        _parentActivity.moveToStreaming(_info);
     }
 
     private void playbackActionOnClick() {
-       _parentActivity.moveToPlayback();
+        _parentActivity.moveToPlayback(_info);
     }
 
     private void sendMessage(String message) {
-        if(!isSocketStateValid(_messageSocket, true))
+        if(!WifiDirectHelper.isSocketValid(_messageSocket))
             return;
 
         try {
@@ -192,21 +207,4 @@ public class SelectionFragment extends BaseFragment {
         InputMethodManager inputManager = (InputMethodManager) _parentActivity.getSystemService(Context.INPUT_METHOD_SERVICE);
         inputManager.hideSoftInputFromWindow(view.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
     }
-
-    private boolean isSocketStateValid(Socket socket, boolean showToast)
-    {
-        String msg = null;
-
-        if(socket == null){
-            msg = "The socket is not created. Are you both using the application ?";
-        } else if(!socket.isConnected()){
-            msg = "The socket is disconnected.";
-        }
-
-        if(showToast)
-            Toast.makeText(_parentActivity, msg, Toast.LENGTH_LONG).show();
-
-        return msg == null;
-    }
-
 }
