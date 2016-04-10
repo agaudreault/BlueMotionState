@@ -60,7 +60,12 @@ public class SelectionFragment extends BaseFragment {
 
         @Override
         public void onSocketTimeout() {
-            _parentActivity.onBackPressed();
+            _parentActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    _parentActivity.onBackPressed();
+                }
+            });
         }
     };
 
@@ -85,7 +90,6 @@ public class SelectionFragment extends BaseFragment {
         _devicesName = getArguments().getString(DEVICES_NAME);
         _info = getArguments().getParcelable(WIFI_P2P_INFO);
         new LoadingTask().execute();
-
     }
 
     @Override

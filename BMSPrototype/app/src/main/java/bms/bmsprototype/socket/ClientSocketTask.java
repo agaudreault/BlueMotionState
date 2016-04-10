@@ -8,13 +8,14 @@ import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 
 /**
  * Created by cara1912 on 2016-02-11.
  */
 public class ClientSocketTask extends SocketTask {
     private static final String LOG_TAG = "ClientSocketTask";
-    public static final int CONNECTION_TIMEOUT = 5000;
+    public static final int CONNECTION_TIMEOUT = 3000;
 
     private WifiDirectSocketEventListener _listener;
     private InetAddress _serverAddress;
@@ -41,15 +42,23 @@ public class ClientSocketTask extends SocketTask {
                 socket.bind(null);
                 socket.connect(serverSocketAddress, CONNECTION_TIMEOUT);
                 return socket;
-            } catch (IOException e) {
+
+            } catch (SocketTimeoutException e){
+                Log.d(LOG_TAG, "Socket timeout", e);
+            }  catch (IOException e) {
                 Log.d(LOG_TAG, "Error while connecting to server socket", e);
-
-                ++failCount;
-
-                if(failCount > 2) {
-                    _listener.onSocketTimeout();
-                    return null;
+                try {
+                    Thread.sleep(CONNECTION_TIMEOUT);
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
                 }
+            }
+
+            ++failCount;
+
+            if(failCount > 2) {
+                _listener.onSocketTimeout();
+                return null;
             }
         }
 

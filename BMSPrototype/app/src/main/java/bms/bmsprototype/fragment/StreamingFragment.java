@@ -159,7 +159,12 @@ public class StreamingFragment extends BaseFragment {
 
         @Override
         public void onSocketTimeout() {
-            _parentActivity.onBackPressed();
+            _parentActivity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    _parentActivity.onBackPressed();
+                }
+            });
         }
     };
 
