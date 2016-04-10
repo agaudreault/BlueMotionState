@@ -13,6 +13,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -31,9 +32,11 @@ import bms.bmsprototype.socket.SocketTask;
 public class PlaybackFragment extends BaseFragment {
     public static final String TAG = "PlaybackFragment";
     private static final String WIFI_P2P_INFO = "bms.bmsprototype.fragment.PlaybackFragment.wifi_p2p_info";
+    private static final String DEVICES_NAME = "bms.bmsprototype.fragment.PlaybackFragment.devices_name";
 
     private MainActivity _parentActivity;
     private WifiP2pInfo _info;
+    private String _deviceName;
 
     private SocketTask _socketConnectionTask;
     private LoadingTask _loadingTask;
@@ -42,6 +45,7 @@ public class PlaybackFragment extends BaseFragment {
     private Thread _bitmapReaderThread;
     private ArrayBlockingQueue<byte[]> _encodedBitmaps;
 
+    private TextView _txtMessage;
     private SurfaceView _svPlayback;
     private SurfaceHolder _shPlayback;
     private VideoPlaybackTask _videoPlaybackTask;
@@ -74,9 +78,10 @@ public class PlaybackFragment extends BaseFragment {
     /**
      * Create a new instance of PlaybackFragment
      */
-    public static PlaybackFragment newInstance(WifiP2pInfo info) {
+    public static PlaybackFragment newInstance(WifiP2pInfo info, String devicesName) {
         Bundle args = new Bundle();
         args.putParcelable(WIFI_P2P_INFO, info);
+        args.putString(DEVICES_NAME, devicesName);
 
         PlaybackFragment f = new PlaybackFragment();
         f.setArguments(args);
@@ -90,6 +95,7 @@ public class PlaybackFragment extends BaseFragment {
 
         _parentActivity = (MainActivity) getActivity();
         _info = getArguments().getParcelable(WIFI_P2P_INFO);
+        _deviceName = getArguments().getString(DEVICES_NAME);
 
         _bitmapSocket = null;
         _bitmapReaderThread = null;
@@ -113,6 +119,9 @@ public class PlaybackFragment extends BaseFragment {
     public void onViewCreated(final View view, Bundle savedInstanceState) {
         _svPlayback = (SurfaceView)_parentActivity.findViewById(R.id.svPlayback);
         _shPlayback = _svPlayback.getHolder();
+
+        _txtMessage = (TextView)_parentActivity.findViewById(R.id.txtMessage);
+        _txtMessage.setText("Receiving stream from " + _deviceName);
     }
 
     @Override

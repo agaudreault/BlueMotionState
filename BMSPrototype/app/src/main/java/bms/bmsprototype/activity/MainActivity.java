@@ -86,17 +86,17 @@ public class MainActivity extends Activity {
         replaceFragment(f);
     }
 
-    public void moveToStreaming(WifiP2pInfo info)
+    public void moveToStreaming(WifiP2pInfo info, String devicesName)
     {
         beginLoading();
-        StreamingFragment f = StreamingFragment.newInstance(info);
+        StreamingFragment f = StreamingFragment.newInstance(info, devicesName);
         replaceFragment(f);
     }
 
-    public void moveToPlayback(WifiP2pInfo info)
+    public void moveToPlayback(WifiP2pInfo info, String devicesName)
     {
         beginLoading();
-        PlaybackFragment f = PlaybackFragment.newInstance(info);
+        PlaybackFragment f = PlaybackFragment.newInstance(info, devicesName);
         replaceFragment(f);
     }
 

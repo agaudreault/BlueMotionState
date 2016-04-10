@@ -11,21 +11,12 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <!-- Dummy content. -->
         <LinearLayout
             android:id="@+id/fragment_container"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="horizontal"
             android:layout_weight="2">
-
-            <!-- Comment this fragment. it's for visual test only -->
-            <!--<fragment android:name="bms.bmsprototype.fragment.SelectionFragment"-->
-                <!--android:id="@+id/debugFragment"-->
-                <!--android:layout_width="match_parent"-->
-                <!--android:layout_height="match_parent"-->
-                <!--tools:layout="@layout/selection_fragment" />-->
-
         </LinearLayout>
 
         <TextView
@@ -37,11 +28,11 @@
             android:textSize="16sp"
             android:layout_weight="6" />
 
-    </LinearLayout>
+</LinearLayout>
 
-    <!-- The "loading indicator" view. This view overlaps with
-         the content, so the visibility of these two views
-         should be mutually exclusive. -->
+<!-- The "loading indicator" view. This view overlaps with
+     the content, so the visibility of these two views
+     should be mutually exclusive. -->
     <ProgressBar android:id="@+id/loading_spinner"
         style="?android:progressBarStyleLarge"
         android:layout_width="wrap_content"

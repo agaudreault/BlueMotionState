@@ -191,12 +191,12 @@ public class SelectionFragment extends BaseFragment {
 
     private void streamingActionOnClick() {
         Toast.makeText(_parentActivity, "move to streaming (pairing)", Toast.LENGTH_LONG).show();
-        _parentActivity.moveToStreaming(_info);
+        _parentActivity.moveToStreaming(_info, _devicesName);
     }
 
     private void playbackActionOnClick() {
         Toast.makeText(_parentActivity, "move to playback (pairing)", Toast.LENGTH_LONG).show();
-        _parentActivity.moveToPlayback(_info);
+        _parentActivity.moveToPlayback(_info, _devicesName);
     }
 
     private void sendMessage(String message) {
