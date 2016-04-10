@@ -92,8 +92,8 @@ public class PairingFragment extends BaseFragment {
     /**
      * Called each time the fragment is restored on the UI.
      *
-     * @param view
-     * @param savedInstanceState
+     * @param view the created view
+     * @param savedInstanceState the saved instance
      */
     @Override
     public void onViewCreated(final View view, Bundle savedInstanceState) {

@@ -13,5 +13,6 @@ import java.net.Socket;
 public abstract class SocketTask extends AsyncTask<Void, Void, Socket> {
     public interface WifiDirectSocketEventListener {
         void onSocketConnected(Socket socket);
+        void onSocketTimeout();
     }
 }

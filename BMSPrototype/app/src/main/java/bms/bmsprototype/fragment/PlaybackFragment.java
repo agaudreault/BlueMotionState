@@ -74,6 +74,11 @@ public class PlaybackFragment extends BaseFragment {
 
             _parentActivity.endLoading();
         }
+
+        @Override
+        public void onSocketTimeout() {
+            _parentActivity.onBackPressed();
+        }
     };
 
     /**

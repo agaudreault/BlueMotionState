@@ -156,6 +156,11 @@ public class StreamingFragment extends BaseFragment {
             startVideoCapturingTask();
             _parentActivity.endLoading();
         }
+
+        @Override
+        public void onSocketTimeout() {
+            _parentActivity.onBackPressed();
+        }
     };
 
     public static StreamingFragment newInstance(WifiP2pInfo info, String devicesName) {
