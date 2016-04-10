@@ -33,22 +33,27 @@ public class ClientSocketTask extends SocketTask {
 
         InetSocketAddress serverSocketAddress = new InetSocketAddress(_serverAddress, _port);
         Socket socket;
+        int failCount = 0;
 
-        while(true) {
+        while(!isCancelled()) {
             try {
-                try {
-                    socket = new Socket();
-                    socket.bind(null);
-                    socket.connect(serverSocketAddress, CONNECTION_TIMEOUT);
-                    return socket;
-                } catch (ConnectException e) {
-                    Log.d(LOG_TAG, "Connection attempt failed", e);
-                    Thread.sleep(CONNECTION_TIMEOUT);
-                }
-            } catch (IOException | InterruptedException e) {
+                socket = new Socket();
+                socket.bind(null);
+                socket.connect(serverSocketAddress, CONNECTION_TIMEOUT);
+                return socket;
+            } catch (IOException e) {
                 Log.d(LOG_TAG, "Error while connecting to server socket", e);
+
+                ++failCount;
+
+                if(failCount > 2) {
+                    _listener.onSocketTimeout();
+                    return null;
+                }
             }
         }
+
+        return null;
     }
 
     @Override

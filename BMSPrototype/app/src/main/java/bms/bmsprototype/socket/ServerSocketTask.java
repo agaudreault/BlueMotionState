@@ -5,6 +5,7 @@ import android.util.Log;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketTimeoutException;
 
 /**
  * Created by cara1912 on 2016-02-03.
@@ -24,7 +25,23 @@ public class ServerSocketTask extends SocketTask {
     protected Socket doInBackground(Void... params) {
         try {
             ServerSocket serverSocket = new ServerSocket(_port);
-            Socket clientSocket = serverSocket.accept();
+            serverSocket.setSoTimeout(ClientSocketTask.CONNECTION_TIMEOUT);
+            Socket clientSocket = null;
+            int failCount = 0;
+
+            while(!isCancelled()) {
+                try {
+                    clientSocket = serverSocket.accept();
+                } catch (SocketTimeoutException e) {
+                    ++failCount;
+
+                    if(failCount > 2) {
+                        _listener.onSocketTimeout();
+                        return null;
+                    }
+                }
+            }
+
             serverSocket.close();
             return clientSocket;
         } catch (IOException e) {
