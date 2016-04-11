@@ -45,7 +45,6 @@ public class GyroscopeFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-
         gyroscopeListener.registerListener(new GyroscopeListener.GyroscopeCallback() {
             @Override
             public void call(final int azimuth, final int pitch, final int roll, final int inclination) {

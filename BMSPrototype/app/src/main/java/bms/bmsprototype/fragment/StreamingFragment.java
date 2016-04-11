@@ -536,6 +536,11 @@ public class StreamingFragment extends BaseFragment {
     private class LoadingTask extends AsyncTask<Void, Void, Boolean> {
         @Override
         protected Boolean doInBackground(Void... params) {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
 
             _socketConnectionTask = WifiDirectHelper.openSocketConnection(_info, BITMAP_PORT, _bitmapSocketEventListener);
 

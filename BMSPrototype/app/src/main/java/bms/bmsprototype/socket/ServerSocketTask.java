@@ -32,6 +32,8 @@ public class ServerSocketTask extends SocketTask {
             while(!isCancelled()) {
                 try {
                     clientSocket = serverSocket.accept();
+                    serverSocket.close();
+                    return clientSocket;
                 } catch (SocketTimeoutException e) {
                     ++failCount;
 
@@ -42,8 +44,6 @@ public class ServerSocketTask extends SocketTask {
                 }
             }
 
-            serverSocket.close();
-            return clientSocket;
         } catch (IOException e) {
             Log.d(LOG_TAG, "Error while opening the server socket", e);
         }

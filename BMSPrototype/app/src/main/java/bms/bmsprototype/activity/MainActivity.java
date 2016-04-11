@@ -6,7 +6,10 @@ import android.app.Activity;
 import android.app.Fragment;
 import android.app.FragmentTransaction;
 import android.net.wifi.p2p.WifiP2pInfo;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -16,6 +19,7 @@ import bms.bmsprototype.fragment.PairingFragment;
 import bms.bmsprototype.fragment.PlaybackFragment;
 import bms.bmsprototype.fragment.SelectionFragment;
 import bms.bmsprototype.fragment.StreamingFragment;
+import bms.bmsprototype.helper.WifiDirectHelper;
 
 /**
  * Unique activity containing a loading view and a content view.
@@ -112,11 +116,11 @@ public class MainActivity extends Activity {
      * @param info Wifi connection info used to create a socket connection
      * @param devicesName name of the device that we hace connection info
      */
-    public void moveToSelection(WifiP2pInfo info, String devicesName)
+    public void moveToSelection(final WifiP2pInfo info, final String devicesName)
     {
-        beginLoading();
-        SelectionFragment f = SelectionFragment.newInstance(info, devicesName);
-        replaceFragment(f);
+            beginLoading();
+            SelectionFragment f = SelectionFragment.newInstance(info, devicesName);
+            replaceFragment(f);
     }
 
     /**
@@ -149,7 +153,13 @@ public class MainActivity extends Activity {
      */
     public void beginLoading()
     {
-        showContentOrLoadingIndicator(false);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                showContentOrLoadingIndicator(false);
+            }
+        });
     }
 
     /**
@@ -158,7 +168,13 @@ public class MainActivity extends Activity {
      */
     public void endLoading()
     {
-        showContentOrLoadingIndicator(true);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                showContentOrLoadingIndicator(true);
+            }
+        });
     }
 
     /**
@@ -181,6 +197,7 @@ public class MainActivity extends Activity {
 
         // Commit the transaction
         transaction.commit();
+        getFragmentManager().executePendingTransactions();
     }
 
     /**
@@ -190,6 +207,9 @@ public class MainActivity extends Activity {
         // Decide which view to hide and which to show.
         final View showView = contentLoaded ? _contentView : _loadingView;
         final View hideView = contentLoaded ? _loadingView : _contentView;
+
+        //if (showView.getVisibility() == View.VISIBLE)
+        //    return;
 
         // Set the "show" view to 0% opacity but visible, so that it is visible
         // (but fully transparent) during the animation.
@@ -217,6 +237,8 @@ public class MainActivity extends Activity {
                         hideView.setVisibility(View.GONE);
                     }
                 });
+
+        findViewById(R.id.mainLayout).postInvalidate();
     }
 
 }
