@@ -204,41 +204,13 @@ public class MainActivity extends Activity {
      * Cross-fades between {@link #_contentView} and {@link #_loadingView}.
      */
     private void showContentOrLoadingIndicator(boolean contentLoaded) {
+
         // Decide which view to hide and which to show.
         final View showView = contentLoaded ? _contentView : _loadingView;
         final View hideView = contentLoaded ? _loadingView : _contentView;
 
-        //if (showView.getVisibility() == View.VISIBLE)
-        //    return;
-
-        // Set the "show" view to 0% opacity but visible, so that it is visible
-        // (but fully transparent) during the animation.
-        showView.setAlpha(0f);
         showView.setVisibility(View.VISIBLE);
-
-        // Animate the "show" view to 100% opacity, and clear any animation listener set on
-        // the view. Remember that listeners are not limited to the specific animation
-        // describes in the chained method calls. Listeners are set on the
-        // ViewPropertyAnimator object for the view, which persists across several
-        // animations.
-        showView.animate()
-                .alpha(1f)
-                .setDuration(_shortAnimationDuration)
-                .setListener(null);
-
-        // Animate the "hide" view to 0% opacity. After the animation ends, set its visibility
-        // to GONE as an optimization step (it won't participate in layout passes, etc.)
-        hideView.animate()
-                .alpha(0f)
-                .setDuration(_shortAnimationDuration)
-                .setListener(new AnimatorListenerAdapter() {
-                    @Override
-                    public void onAnimationEnd(Animator animation) {
-                        hideView.setVisibility(View.GONE);
-                    }
-                });
-
-        findViewById(R.id.mainLayout).postInvalidate();
+        hideView.setVisibility(View.GONE);
     }
 
 }

@@ -310,12 +310,6 @@ public class PlaybackFragment extends BaseFragment {
         @Override
         protected Boolean doInBackground(Void... params) {
 
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
             _bitmapWidth = getResources().getDimensionPixelOffset(R.dimen.bitmap_width);
             _bitmapHeight = getResources().getDimensionPixelOffset(R.dimen.bitmap_height);
 

@@ -168,11 +168,6 @@ public class SelectionFragment extends BaseFragment {
     private class LoadingTask extends AsyncTask<Void, Void, Boolean> {
         @Override
         protected Boolean doInBackground(Void... params) {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
 
             //// TODO: 2016-04-07 add a timeout for the socket creation and simulate a backPress if timeout
             //create the socket connection.
