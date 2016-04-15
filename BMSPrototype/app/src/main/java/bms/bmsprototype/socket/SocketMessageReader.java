@@ -8,11 +8,15 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 
 /**
- * Created by cara1912 on 2016-02-18.
+ * Task to read line from a socket inputStream and return each of them through a
+ * callback.
  */
 public class SocketMessageReader implements Runnable {
     private static final String TAG = "SocketMessageReader";
 
+    /**
+     * The callback.
+     */
     public interface EventListener{
         void onMessageReceived(String message);
     }
@@ -20,6 +24,12 @@ public class SocketMessageReader implements Runnable {
     private EventListener _listener;
     private Socket _socket;
 
+    /**
+     * Create the task.
+     *
+     * @param listener The callback.
+     * @param socket The socket to get the inputStream of.
+     */
     public SocketMessageReader(EventListener listener, Socket socket) {
         _listener = listener;
         _socket = socket;
@@ -47,31 +57,3 @@ public class SocketMessageReader implements Runnable {
         }
     }
 }
-
-
-//    @Override
-//    public void run() {
-//        if(_socket == null || !_socket.isConnected())
-//            return;
-//
-//        try {
-//            //BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(_socket.getInputStream()));
-//            InputStream is = _socket.getInputStream();
-//            byte[] buf = new byte[8192];
-//            int len;
-//
-//            while(true) {
-//                while ((len = is.read(buf, 0, buf.length)) != -1) {
-//
-//                    //String message = bufferedReader.readLine();
-//                    String message = new String(buf, 0, len);
-//
-//                    if(message != null)
-//                        _activity.onMessageReceived(message);
-//                }
-//            }
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//            Log.d(LOG_TAG, "Error while reading a message", e);
-//        }
-//    }

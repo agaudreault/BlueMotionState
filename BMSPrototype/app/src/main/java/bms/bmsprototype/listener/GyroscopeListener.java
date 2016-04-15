@@ -5,6 +5,10 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 
+/**
+ * Listener allowing us to retrieve the most accurate azimuth, pitch, roll and inclination with
+ * the help of gravity sensor, accelerometer sensor and geomagnetic sensor.
+ */
 public class GyroscopeListener implements SensorEventListener {
 
     private static final String TAG = "GyroscopeListener";
@@ -22,15 +26,28 @@ public class GyroscopeListener implements SensorEventListener {
     boolean haveGeomagnetic = false;
 
 
+    /**
+     * Callback to use when gyroscope information has changed.
+     */
     public interface GyroscopeCallback {
         void call(final int azimuth, final int pitch, final int roll, final int inclination);
     }
 
 
+    /**
+     * Constructor to use
+     *
+     * @param manager Then instantiated {@link SensorManager}.
+     */
     public GyroscopeListener(SensorManager manager){
         sensorManager = manager;
     }
 
+    /**
+     * Register to three different sensors in order to get an accurate gyroscopic information
+     *
+     * @param callback The callback to call when new values are known.
+     */
     public void registerListener(GyroscopeCallback callback)
     {
         Sensor gravitySensor = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY);
@@ -44,16 +61,24 @@ public class GyroscopeListener implements SensorEventListener {
         this.callback = callback;
     }
 
+    /**
+     * Unregister the listener.
+     */
     public void unregisterListener()
     {
         sensorManager.unregisterListener(this);
     }
 
-     @Override
-    public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        // ????
-    }
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {}
 
+    /**
+     * Called each time a registered sensor get a new value, then compute
+     * the orientation matrix.
+     *
+     * @param event The SensorEvent.
+     */
+    @Override
     public void onSensorChanged(SensorEvent event) {
         switch( event.sensor.getType() ) {
             case Sensor.TYPE_GRAVITY:

@@ -8,7 +8,7 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 
 /**
- * Created by cara1912 on 2016-02-03.
+ * Create a server socket and return the client socket through callback when another client is found.
  */
 public class ServerSocketTask extends SocketTask {
     private static final String LOG_TAG = "ServerSocketTask";
@@ -16,6 +16,12 @@ public class ServerSocketTask extends SocketTask {
     private WifiDirectSocketEventListener _listener;
     private int _port;
 
+    /**
+     * Create this task.
+     *
+     * @param listener The callback
+     * @param port The port to create the socket on.
+     */
     public ServerSocketTask(WifiDirectSocketEventListener listener, int port) {
         _listener = listener;
         _port = port;

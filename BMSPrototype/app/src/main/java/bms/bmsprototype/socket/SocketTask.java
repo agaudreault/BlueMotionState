@@ -8,9 +8,13 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
- * Created by cara1912 on 2016-02-03.
+ * Base class for a client or a server socket task.
  */
 public abstract class SocketTask extends AsyncTask<Void, Void, Socket> {
+
+    /**
+     * Connection Callback to use
+     */
     public interface WifiDirectSocketEventListener {
         void onSocketConnected(Socket socket);
         void onSocketTimeout();

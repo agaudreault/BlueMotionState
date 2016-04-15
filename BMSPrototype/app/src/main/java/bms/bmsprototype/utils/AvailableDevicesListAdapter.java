@@ -13,7 +13,7 @@ import java.util.List;
 import bms.bmsprototype.R;
 
 /**
- * Created by cara1912 on 2016-02-12.
+ * ArrayAdapter to use with available device template.
  */
 public class AvailableDevicesListAdapter extends ArrayAdapter<WifiP2pDevice> {
 

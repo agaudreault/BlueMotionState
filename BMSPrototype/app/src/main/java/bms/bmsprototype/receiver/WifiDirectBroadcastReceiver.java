@@ -9,10 +9,13 @@ import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pManager;
 
 /**
- * Created by cara1912 on 2016-01-28.
+ * Class to manage different intents used by WifiP2P.
  */
 public class WifiDirectBroadcastReceiver extends BroadcastReceiver {
 
+    /**
+     * Callback
+     */
     public interface WifiDirectEventListener {
         void onConnectedDevice(boolean success);
         void onConnectedDeviceFound(WifiP2pDevice device);
@@ -88,7 +91,7 @@ public class WifiDirectBroadcastReceiver extends BroadcastReceiver {
                 _listener.onWifiStateChanged(wifiState == WifiP2pManager.WIFI_P2P_STATE_ENABLED);
                 break;
             case WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION:
-                //TODO : React to this event if necessary
+                //nothing to do
                 break;
         }
     }

@@ -11,7 +11,7 @@ import java.net.Socket;
 import java.net.SocketTimeoutException;
 
 /**
- * Created by cara1912 on 2016-02-11.
+ * Create a socket connection and return this socket through callback.
  */
 public class ClientSocketTask extends SocketTask {
     private static final String LOG_TAG = "ClientSocketTask";
@@ -21,6 +21,13 @@ public class ClientSocketTask extends SocketTask {
     private InetAddress _serverAddress;
     private int _port;
 
+    /**
+     * Create this task.
+     *
+     * @param listener The callback.
+     * @param port The port to create the socket on.
+     * @param serverAddress The server socket address.
+     */
     public ClientSocketTask(WifiDirectSocketEventListener listener, int port, InetAddress serverAddress) {
         _listener = listener;
         _serverAddress = serverAddress;

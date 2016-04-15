@@ -169,8 +169,6 @@ public class SelectionFragment extends BaseFragment {
         @Override
         protected Boolean doInBackground(Void... params) {
 
-            //// TODO: 2016-04-07 add a timeout for the socket creation and simulate a backPress if timeout
-            //create the socket connection.
             _socketConnectionTask = WifiDirectHelper.openSocketConnection(_info, MESSAGE_PORT, _messageSocketEventListener);
 
             if(_socketConnectionTask == null) {

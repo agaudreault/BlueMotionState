@@ -11,7 +11,8 @@ import java.nio.ByteBuffer;
 import bms.bmsprototype.helper.WifiDirectHelper;
 
 /**
- * Created by cara1912 on 2016-04-06.
+ * Read bitmaps through a socket output stream and return each bitmap through
+ * a callback.
  */
 public class SocketBitmapReader implements Runnable {
     private static final String TAG = "SocketBitmapReader";
@@ -19,6 +20,9 @@ public class SocketBitmapReader implements Runnable {
     private static final int BYTES_BUFFER_SIZE = 32768;
     private static final int READING_SIZE = 1024;
 
+    /**
+     * The callback
+     */
     public interface EventListener{
         void onEncodedBitmapReceived(byte[] encodedBitmap);
     }
@@ -35,6 +39,12 @@ public class SocketBitmapReader implements Runnable {
     private int _bytesBufferOffset;
     private byte[] _bytesBuffer;
 
+    /**
+     * Create the task.
+     *
+     * @param listener The callback.
+     * @param socket The socket to get the inputStream of.
+     */
     public SocketBitmapReader(EventListener listener, Socket socket) {
         _listener = listener;
         _socket = socket;
