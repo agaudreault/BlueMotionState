@@ -6,6 +6,6 @@ De nos jours, il existe plusieurs jeux multijoueurs sur plateformes mobiles, mai
 https://www.youtube.com/watch?v=xq-vGQL3p34
 
 
-Anthony Caron
-Alexandre Gaudreault
-Université de Sherbrooke 
+Anthony Caron,<br />
+Alexandre Gaudreault,<br />
+Université de Sherbrooke <br />
